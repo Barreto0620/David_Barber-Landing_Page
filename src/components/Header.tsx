@@ -1,11 +1,23 @@
 import { useState } from "react";
-import { Menu, X, Calendar, Phone } from "lucide-react";
+import { Menu, X, Calendar, Phone, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
 
 export const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user, profile, signOut, loading } = useAuth();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  const handleDashboardClick = () => {
+    if (profile?.user_type === 'admin') {
+      navigate('/admin/dashboard');
+    } else {
+      navigate('/client/dashboard');
+    }
+  };
 
   return (
     <header className="bg-background/95 backdrop-blur-md border-b border-border sticky top-0 z-40">
@@ -54,10 +66,41 @@ export const Header = () => {
               <Phone className="h-4 w-4 mr-2" />
               (11) 9999-9999
             </Button>
-            <Button className="btn-hero">
-              <Calendar className="h-4 w-4 mr-2" />
-              Reservar Agora
-            </Button>
+            
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDashboardClick}
+                  className="btn-outline-copper"
+                >
+                  <User className="h-4 w-4 mr-2" />
+                  {profile?.user_type === 'admin' ? 'Painel Admin' : 'Minha Conta'}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={signOut}
+                  disabled={loading}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="outline" size="sm" className="btn-outline-copper">
+                    <User className="h-4 w-4 mr-2" />
+                    Entrar
+                  </Button>
+                </Link>
+                <Button className="btn-hero">
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Reservar Agora
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -114,10 +157,48 @@ export const Header = () => {
                   <Phone className="h-4 w-4 mr-2" />
                   (11) 9999-9999
                 </Button>
-                <Button className="btn-hero">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Reservar Agora
-                </Button>
+                
+                {user ? (
+                  <>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        handleDashboardClick();
+                        toggleMenu();
+                      }}
+                      className="btn-outline-copper"
+                    >
+                      <User className="h-4 w-4 mr-2" />
+                      {profile?.user_type === 'admin' ? 'Painel Admin' : 'Minha Conta'}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        signOut();
+                        toggleMenu();
+                      }}
+                      disabled={loading}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Sair
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={toggleMenu}>
+                      <Button variant="outline" size="sm" className="btn-outline-copper w-full">
+                        <User className="h-4 w-4 mr-2" />
+                        Entrar
+                      </Button>
+                    </Link>
+                    <Button className="btn-hero">
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Reservar Agora
+                    </Button>
+                  </>
+                )}
               </div>
             </div>
           </div>
