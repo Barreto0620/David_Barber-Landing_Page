@@ -94,7 +94,7 @@ export const useAuthProvider = () => {
       
       toast({
         title: "Login realizado com sucesso!",
-        description: "Bem-vindo de volta ao BarberShop Pro",
+        description: "Bem-vindo de volta ao David Barber",
       });
 
       // Redirect will be handled by the auth state change listener

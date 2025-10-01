@@ -52,7 +52,7 @@ export const AdminHeader = () => {
               className="text-xl font-display font-bold text-primary cursor-pointer"
               onClick={() => navigate('/admin/dashboard')}
             >
-              BarberShop Pro
+              David Barber
               <Badge variant="secondary" className="ml-2 text-xs">Admin</Badge>
             </h1>
           </div>

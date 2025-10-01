@@ -61,7 +61,7 @@ export const ClientHeader = ({ user }: ClientHeaderProps) => {
               className="text-xl font-display font-bold text-primary cursor-pointer"
               onClick={() => navigate('/client/dashboard')}
             >
-              BarberShop Pro
+              David Barber
             </h1>
           </div>
 

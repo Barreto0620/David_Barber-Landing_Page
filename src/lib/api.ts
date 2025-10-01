@@ -1,4 +1,4 @@
-// API client for BarberShop Pro
+// API client for David Barber
 // Placeholder functions for Azure Functions integration
 
 import type { 

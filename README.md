@@ -1,4 +1,4 @@
-# BarberShop Pro - Premium Barber Shop Template
+# David Barber - Premium Barber Shop Template
 
 A production-ready, responsive web template for barber shops with modern booking functionality, built with React, TypeScript, and Tailwind CSS.
 

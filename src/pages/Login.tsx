@@ -93,7 +93,7 @@ const Login = () => {
         {/* Logo/Brand */}
         <div className="text-center">
           <h1 className="text-3xl font-display font-bold text-foreground">
-            BarberShop Pro
+            David Barber
           </h1>
           <p className="text-muted-foreground mt-2">
             Sistema completo para barbearias

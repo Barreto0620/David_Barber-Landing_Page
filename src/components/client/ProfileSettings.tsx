@@ -299,7 +299,7 @@ export const ProfileSettings = ({ user }: ProfileSettingsProps) => {
         <CardHeader>
           <CardTitle>Estatísticas da Conta</CardTitle>
           <CardDescription>
-            Resumo da sua atividade na BarberShop Pro
+            Resumo da sua atividade na David Barber
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -1,4 +1,4 @@
-// TypeScript interfaces for the BarberShop Pro application
+// TypeScript interfaces for the David Barber application
 // These interfaces define the data models for Azure Cosmos DB and API responses
 
 export interface Booking {

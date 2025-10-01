@@ -8,7 +8,7 @@ export const Footer = () => {
           {/* Brand & Description */}
           <div className="lg:col-span-2">
             <h3 className="text-2xl font-display font-bold gradient-text mb-4">
-              BarberShop Pro
+              David Barber
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md leading-relaxed">
               Transformando o cuidado masculino com estilo premium e atendimento 
@@ -105,7 +105,7 @@ export const Footer = () => {
         <div className="border-t border-border mt-12 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-muted-foreground text-sm">
-              © 2024 BarberShop Pro. Todos os direitos reservados.
+              © 2024 David Barber. Todos os direitos reservados.
             </div>
             
             <div className="flex space-x-6 text-sm">

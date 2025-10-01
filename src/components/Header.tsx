@@ -26,7 +26,7 @@ export const Header = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <h1 className="text-2xl font-display font-bold gradient-text">
-              BarberShop Pro
+              David Barber
             </h1>
           </div>
 
@@ -89,12 +89,6 @@ export const Header = () => {
               </div>
             ) : (
               <>
-                <Link to="/login">
-                  <Button variant="outline" size="sm" className="btn-outline-copper">
-                    <User className="h-4 w-4 mr-2" />
-                    Entrar
-                  </Button>
-                </Link>
                 <Button className="btn-hero">
                   <Calendar className="h-4 w-4 mr-2" />
                   Reservar Agora
