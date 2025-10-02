@@ -1,179 +1,247 @@
-import { Star, Calendar, Award, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import barber1 from "@/assets/barber-1.jpg";
-import barber2 from "@/assets/barber-2.jpg";
-
-const teamMembers = [
-  {
-    id: 1,
-    name: "Carlos Silva",
-    role: "Barbeiro Master",
-    experience: "8 anos",
-    specialties: ["Cortes clássicos", "Barbas elaboradas", "Design capilar"],
-    rating: 4.9,
-    reviewCount: 234,
-    image: barber1,
-    status: "available", // available, busy, offline
-    nextAvailable: "Hoje, 14:30",
-    bio: "Especialista em cortes clássicos e modernos, com foco em barbas elaboradas e design personalizado.",
-  },
-  {
-    id: 2,
-    name: "Ana Costa",
-    role: "Hair Stylist",
-    experience: "6 anos",
-    specialties: ["Cortes femininos", "Coloração", "Tratamentos"],
-    rating: 5.0,
-    reviewCount: 189,
-    image: barber2,
-    status: "busy",
-    nextAvailable: "Amanhã, 09:00",
-    bio: "Especializada em cortes femininos e técnicas avançadas de coloração e tratamentos capilares.",
-  },
-];
-
-const StatusBadge = ({ status }: { status: string }) => {
-  const statusConfig = {
-    available: { class: "badge-available", text: "Disponível" },
-    busy: { class: "badge-busy", text: "Ocupado" },
-    offline: { class: "badge-offline", text: "Offline" },
-  };
-
-  const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.offline;
-
-  return <span className={config.class}>{config.text}</span>;
-};
+import { Star, Award, Clock, TrendingUp, Scissors, Users, Heart, Target, Sparkles, Trophy, Calendar } from "lucide-react";
 
 export const Team = () => {
+  // Dados do profissional - virá do Supabase
+  const barber = {
+    name: "Carlos Silva",
+    role: "Fundador & Barbeiro Master",
+    experience: 8,
+    rating: 4.9,
+    reviewCount: 234,
+    totalClients: 500,
+    image: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=400&fit=crop",
+    bio: "Com 8 anos de experiência e mais de 500 clientes atendidos, transformo cada corte em uma experiência única. Especialista em cortes clássicos, modernos e barbas elaboradas.",
+    certifications: [
+      "Certificado Internacional de Barbeiro",
+      "Especialização em Design de Barba",
+      "Formação em Tricologia Capilar"
+    ],
+    specialties: [
+      { name: "Cortes Clássicos", icon: Scissors, level: 95 },
+      { name: "Barbas Elaboradas", icon: Sparkles, level: 98 },
+      { name: "Design Capilar", icon: Target, level: 92 },
+      { name: "Atendimento Premium", icon: Heart, level: 100 }
+    ],
+    achievements: [
+      { icon: Trophy, title: "Melhor Barbeiro 2023", description: "Prêmio Regional" },
+      { icon: Users, title: "500+ Clientes", description: "Atendidos com excelência" },
+      { icon: Star, title: "4.9 Estrelas", description: "Média de avaliações" },
+      { icon: TrendingUp, title: "98% Retorno", description: "Taxa de fidelização" }
+    ]
+  };
+
+  const testimonials = [
+    {
+      name: "Roberto Alves",
+      rating: 5,
+      comment: "Profissional excepcional! Atendimento impecável e resultado surpreendente.",
+      date: "Há 2 dias"
+    },
+    {
+      name: "Marcelo Costa",
+      rating: 5,
+      comment: "Melhor barbeiro da região. Sempre saio satisfeito e bem atendido.",
+      date: "Há 1 semana"
+    },
+    {
+      name: "Felipe Santos",
+      rating: 5,
+      comment: "Corte perfeito, ambiente profissional e preço justo. Recomendo!",
+      date: "Há 2 semanas"
+    }
+  ];
+
+  const openBooking = () => {
+    window.dispatchEvent(new CustomEvent('openBooking'));
+  };
+
   return (
-    <section id="team" className="py-20 bg-background">
+    <section id="team" className="py-20 bg-slate-900">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center mb-16 animate-fade-in-up">
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
-            Nossa <span className="gradient-text">Equipe</span>
+          <h2 className="text-4xl md:text-5xl font-bold mb-4">
+            Conheça o <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Profissional</span>
           </h2>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Profissionais experientes e qualificados para cuidar do seu visual
+          <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+            Experiência, paixão e dedicação em cada atendimento
           </p>
         </div>
 
-        {/* Team Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {teamMembers.map((member, index) => (
-            <div
-              key={member.id}
-              className="card-staff animate-fade-in-up"
-              style={{ animationDelay: `${index * 0.1}s` }}
-            >
-              {/* Profile Image */}
-              <div className="relative">
-                <img
-                  src={member.image}
-                  alt={`${member.name} - ${member.role}`}
-                  className="w-full h-64 object-cover"
-                />
-                {/* Status Overlay */}
-                <div className="absolute top-4 right-4">
-                  <StatusBadge status={member.status} />
-                </div>
-              </div>
-
-              {/* Profile Info */}
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-xl font-display font-semibold">
-                    {member.name}
-                  </h3>
-                  <div className="flex items-center">
-                    <Star className="h-4 w-4 text-primary fill-current mr-1" />
-                    <span className="text-sm font-medium">{member.rating}</span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Profile Card */}
+          <div className="lg:col-span-2">
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl overflow-hidden hover:border-amber-500 transition-all duration-300 shadow-xl">
+              <div className="grid grid-cols-1 md:grid-cols-2">
+                {/* Profile Image */}
+                <div className="relative h-[400px] md:h-auto">
+                  <img
+                    src={barber.image}
+                    alt={barber.name}
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute top-4 right-4">
+                    <span className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-bold shadow-lg flex items-center">
+                      <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
+                      Disponível Agora
+                    </span>
                   </div>
                 </div>
 
-                <div className="text-primary font-medium mb-1">{member.role}</div>
-                <div className="text-sm text-muted-foreground mb-4">
-                  {member.experience} de experiência
-                </div>
-
-                <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-                  {member.bio}
-                </p>
-
-                {/* Specialties */}
-                <div className="mb-4">
-                  <div className="text-sm font-medium mb-2">Especialidades:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {member.specialties.map((specialty, idx) => (
-                      <span
-                        key={idx}
-                        className="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs font-medium"
-                      >
-                        {specialty}
+                {/* Profile Info */}
+                <div className="p-8">
+                  <div className="mb-6">
+                    <h3 className="text-3xl font-bold text-white mb-2">
+                      {barber.name}
+                    </h3>
+                    <p className="text-amber-400 font-semibold text-lg mb-2">
+                      {barber.role}
+                    </p>
+                    <div className="flex items-center space-x-4 text-sm text-slate-400">
+                      <span className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {barber.experience} anos
                       </span>
-                    ))}
+                      <span className="flex items-center">
+                        <Users className="h-4 w-4 mr-1" />
+                        {barber.totalClients}+ clientes
+                      </span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Next Available */}
-                <div className="flex items-center text-sm text-muted-foreground mb-4">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Próximo horário: {member.nextAvailable}
-                </div>
-
-                {/* Stats */}
-                <div className="flex items-center justify-between text-sm text-muted-foreground mb-6">
-                  <div className="flex items-center">
-                    <Award className="h-4 w-4 mr-1" />
-                    {member.reviewCount} avaliações
+                  {/* Rating */}
+                  <div className="flex items-center mb-6 pb-6 border-b border-slate-700">
+                    <div className="flex mr-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className="h-5 w-5 text-amber-400 fill-amber-400"
+                        />
+                      ))}
+                    </div>
+                    <span className="text-white font-bold text-lg">{barber.rating}</span>
+                    <span className="text-slate-400 ml-2">({barber.reviewCount} avaliações)</span>
                   </div>
+
+                  {/* Bio */}
+                  <p className="text-slate-300 leading-relaxed mb-6">
+                    {barber.bio}
+                  </p>
+
+                  {/* CTA Button */}
+                  <button 
+                    onClick={openBooking}
+                    className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold flex items-center justify-center text-lg"
+                  >
+                    <Calendar className="h-5 w-5 mr-2" />
+                    Agendar com {barber.name.split(' ')[0]}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Specialties */}
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-8 mt-8">
+              <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
+                <Sparkles className="h-6 w-6 text-amber-400 mr-2" />
+                Especialidades
+              </h4>
+              <div className="space-y-6">
+                {barber.specialties.map((specialty, index) => (
+                  <div key={index}>
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        <specialty.icon className="h-5 w-5 text-amber-400 mr-2" />
+                        <span className="font-semibold text-white">{specialty.name}</span>
+                      </div>
+                      <span className="text-amber-400 font-bold">{specialty.level}%</span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2">
+                      <div 
+                        className="bg-gradient-to-r from-amber-500 to-orange-600 h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${specialty.level}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar */}
+          <div className="space-y-8">
+            {/* Achievements */}
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6">
+              <h4 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Award className="h-5 w-5 text-amber-400 mr-2" />
+                Conquistas
+              </h4>
+              <div className="space-y-4">
+                {barber.achievements.map((achievement, index) => (
+                  <div key={index} className="flex items-start space-x-3 p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors">
+                    <div className="bg-amber-500/20 p-2 rounded-lg">
+                      <achievement.icon className="h-5 w-5 text-amber-400" />
+                    </div>
+                    <div>
+                      <h5 className="font-bold text-white text-sm">{achievement.title}</h5>
+                      <p className="text-xs text-slate-400">{achievement.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Certifications */}
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6">
+              <h4 className="text-xl font-bold text-white mb-4 flex items-center">
+                <Trophy className="h-5 w-5 text-amber-400 mr-2" />
+                Certificações
+              </h4>
+              <ul className="space-y-3">
+                {barber.certifications.map((cert, index) => (
+                  <li key={index} className="flex items-start text-sm">
+                    <span className="text-amber-400 mr-2">✓</span>
+                    <span className="text-slate-300">{cert}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Quick CTA */}
+            <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center">
+              <div className="text-4xl mb-3">⚡</div>
+              <h4 className="font-bold text-lg mb-2">Vagas Limitadas!</h4>
+              <p className="text-sm mb-4 text-white/90">Agende agora e garanta seu horário</p>
+              <button 
+                onClick={openBooking}
+                className="w-full px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-slate-100 transition-all duration-300 font-bold"
+              >
+                Reservar Agora
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Testimonials */}
+        <div className="mt-16">
+          <h3 className="text-3xl font-bold text-white mb-8 text-center">
+            O que nossos <span className="text-amber-400">clientes dizem</span>
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <div key={index} className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-amber-500 transition-all duration-300">
+                <div className="flex items-center justify-between mb-4">
                   <div className="flex">
-                    {[...Array(5)].map((_, i) => (
-                      <Star
-                        key={i}
-                        className={`h-3 w-3 ${
-                          i < Math.floor(member.rating)
-                            ? "text-primary fill-current"
-                            : "text-muted"
-                        }`}
-                      />
+                    {[...Array(testimonial.rating)].map((_, i) => (
+                      <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" />
                     ))}
                   </div>
+                  <span className="text-xs text-slate-500">{testimonial.date}</span>
                 </div>
-
-                {/* CTA Button */}
-                <Button 
-                  className="w-full btn-hero"
-                  disabled={member.status === "offline"}
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {member.status === "available" 
-                    ? "Agendar Agora" 
-                    : member.status === "busy" 
-                    ? "Agendar Próximo" 
-                    : "Indisponível"
-                  }
-                </Button>
+                <p className="text-slate-300 mb-4 italic">"{testimonial.comment}"</p>
+                <p className="text-white font-semibold">— {testimonial.name}</p>
               </div>
-            </div>
-          ))}
-
-          {/* Join Team Card */}
-          <div className="card-staff border-dashed border-2 border-primary/30 flex items-center justify-center p-8 text-center animate-fade-in-up">
-            <div>
-              <div className="bg-primary/20 p-4 rounded-full w-fit mx-auto mb-4">
-                <Award className="h-8 w-8 text-primary" />
-              </div>
-              <h3 className="text-xl font-display font-semibold mb-2">
-                Junte-se ao Time
-              </h3>
-              <p className="text-muted-foreground mb-4 text-sm">
-                Procuramos profissionais talentosos para nossa equipe
-              </p>
-              <Button variant="outline" className="btn-outline-copper">
-                Ver Vagas
-              </Button>
-            </div>
+            ))}
           </div>
         </div>
       </div>
