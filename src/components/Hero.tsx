@@ -137,7 +137,7 @@ export const Hero = () => {
             <div className="bg-slate-800 border-2 border-amber-500/30 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 hover:border-amber-500/50 transition-all duration-300">
               <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  Reserva Rápida
+                  Acompanhar Corte
                 </h3>
                 <div className="flex items-center space-x-1">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
