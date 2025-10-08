@@ -5,7 +5,7 @@ import { Star, Award, Clock, TrendingUp, Scissors, Users, Heart, Target, Sparkle
 export const Team = () => {
     // Dados do profissional - virá do Supabase
     const barber = {
-        name: "Carlos Silva",
+        name: "David Sousa",
         role: "Fundador & Barbeiro Master",
         experience: 8,
         rating: 4.9,

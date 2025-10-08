@@ -23,8 +23,17 @@ export const Hero = () => {
   }, []);
 
   const openBookingModal = () => {
-    // Dispara evento customizado para abrir o modal do Header
-    window.dispatchEvent(new CustomEvent('openBooking'));
+    console.log('Tentando abrir modal de reserva...');
+    
+    // Método 1: Usar função global (mais direto)
+    if (typeof (window as any).openBookingModal === 'function') {
+      console.log('Usando função global');
+      (window as any).openBookingModal();
+    } else {
+      console.log('Função global não encontrada, usando evento');
+      // Método 2: Disparar evento customizado (fallback)
+      window.dispatchEvent(new CustomEvent('openBooking'));
+    }
   };
 
   return (
@@ -37,25 +46,25 @@ export const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           {/* Left Column - Text Content */}
-          <div className="animate-fade-in-up">
-            <div className="flex items-center space-x-2 mb-6">
+          <div className="space-y-6 sm:space-y-8">
+            <div className="flex items-center space-x-2">
               <div className="flex">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
-                    className="h-5 w-5 text-amber-400 fill-amber-400"
+                    className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 fill-amber-400"
                   />
                 ))}
               </div>
-              <span className="text-slate-300 font-medium">
+              <span className="text-slate-300 font-medium text-sm sm:text-base">
                 4.9/5 • 500+ clientes satisfeitos
               </span>
             </div>
 
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
               Estilo{" "}
               <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
                 Premium
@@ -64,14 +73,14 @@ export const Hero = () => {
               <span className="text-white">para Homens</span>
             </h1>
 
-            <p className="text-xl text-slate-300 mb-8 leading-relaxed max-w-lg">
+            <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-lg">
               Transforme seu visual com nosso barbeiro especializado. 
               Agende em <strong className="text-amber-400">3 cliques</strong> e 
               experimente o melhor da barbearia moderna.
             </p>
 
             {/* Quick Benefits */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {[
                 { icon: Calendar, text: "Agendamento online 24/7" },
                 { icon: Clock, text: "Atendimento pontual" },
@@ -80,9 +89,9 @@ export const Hero = () => {
               ].map((benefit, index) => (
                 <div key={index} className="flex items-center space-x-3 group">
                   <div className="bg-amber-500/20 p-2 rounded-lg group-hover:bg-amber-500/30 transition-colors">
-                    <benefit.icon className="h-5 w-5 text-amber-400" />
+                    <benefit.icon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
                   </div>
-                  <span className="text-white font-medium">
+                  <span className="text-white font-medium text-sm sm:text-base">
                     {benefit.text}
                   </span>
                 </div>
@@ -90,44 +99,44 @@ export const Hero = () => {
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button 
                 onClick={openBookingModal}
-                className="px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:shadow-lg hover:shadow-amber-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center font-bold text-lg"
+                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:shadow-lg hover:shadow-amber-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95"
               >
-                <Calendar className="h-5 w-5 mr-2" />
+                <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Reservar Agora - 3 Passos
               </button>
               <button 
                 onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-8 py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-lg"
+                className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95"
               >
                 Ver Nossos Serviços
               </button>
             </div>
 
             {/* Quick Stats */}
-            <div className="flex items-center space-x-8 mt-8 pt-8 border-t border-slate-700">
+            <div className="flex items-center justify-around sm:justify-start sm:space-x-8 pt-6 sm:pt-8 border-t border-slate-700">
               <div className="text-center">
-                <div className="text-3xl font-bold text-amber-400">500+</div>
-                <div className="text-sm text-slate-400">Clientes</div>
+                <div className="text-2xl sm:text-3xl font-bold text-amber-400">500+</div>
+                <div className="text-xs sm:text-sm text-slate-400">Clientes</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-amber-400">8</div>
-                <div className="text-sm text-slate-400">Anos</div>
+                <div className="text-2xl sm:text-3xl font-bold text-amber-400">8</div>
+                <div className="text-xs sm:text-sm text-slate-400">Anos</div>
               </div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-amber-400">98%</div>
-                <div className="text-sm text-slate-400">Satisfação</div>
+                <div className="text-2xl sm:text-3xl font-bold text-amber-400">98%</div>
+                <div className="text-xs sm:text-sm text-slate-400">Satisfação</div>
               </div>
             </div>
           </div>
 
           {/* Right Column - Live Booking Preview */}
-          <div className="lg:flex justify-center hidden">
-            <div className="bg-slate-800 border-2 border-amber-500/30 rounded-2xl p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 animate-fade-in-up hover:border-amber-500/50 transition-all duration-300">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-xl font-bold text-white">
+          <div className="flex justify-center lg:justify-end">
+            <div className="bg-slate-800 border-2 border-amber-500/30 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 hover:border-amber-500/50 transition-all duration-300">
+              <div className="flex items-center justify-between mb-5 sm:mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   Reserva Rápida
                 </h3>
                 <div className="flex items-center space-x-1">
@@ -136,24 +145,24 @@ export const Hero = () => {
                 </div>
               </div>
               
-              <div className="space-y-4">
-                <div className="p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                  <div className="text-sm text-slate-400 mb-1">Serviço</div>
-                  <div className="font-bold text-white">{liveBooking.service.name}</div>
-                  <div className="text-amber-400 font-bold text-lg">R$ {liveBooking.service.price},00</div>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
+                  <div className="text-xs sm:text-sm text-slate-400 mb-1">Serviço</div>
+                  <div className="font-bold text-white text-sm sm:text-base">{liveBooking.service.name}</div>
+                  <div className="text-amber-400 font-bold text-lg sm:text-xl">R$ {liveBooking.service.price},00</div>
                 </div>
                 
-                <div className="p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                  <div className="text-sm text-slate-400 mb-1">Profissional</div>
-                  <div className="font-bold text-white">{liveBooking.professional.name}</div>
-                  <span className="inline-block mt-2 px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-bold">
+                <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
+                  <div className="text-xs sm:text-sm text-slate-400 mb-1">Profissional</div>
+                  <div className="font-bold text-white text-sm sm:text-base">{liveBooking.professional.name}</div>
+                  <span className="inline-block mt-2 px-2 sm:px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-bold">
                     ✓ Disponível
                   </span>
                 </div>
                 
-                <div className="p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                  <div className="text-sm text-slate-400 mb-1">Próximo Horário</div>
-                  <div className="font-bold text-white flex items-center">
+                <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
+                  <div className="text-xs sm:text-sm text-slate-400 mb-1">Próximo Horário</div>
+                  <div className="font-bold text-white flex items-center text-sm sm:text-base">
                     <Clock className="h-4 w-4 mr-2 text-amber-400" />
                     {liveBooking.nextSlot}
                   </div>
@@ -161,9 +170,9 @@ export const Hero = () => {
                 
                 <button 
                   onClick={openBookingModal}
-                  className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold"
+                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95"
                 >
-                  <Calendar className="h-5 w-5 mr-2" />
+                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Confirmar Reserva
                 </button>
 
@@ -177,8 +186,8 @@ export const Hero = () => {
       </div>
 
       {/* Floating Elements */}
-      <div className="absolute bottom-10 right-10 hidden lg:block animate-bounce">
-        <div className="bg-amber-500 text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg">
+      <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
+        <div className="bg-amber-500 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
           ⚡ Vagas limitadas hoje!
         </div>
       </div>

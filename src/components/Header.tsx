@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, Calendar, Phone, User, LogOut, ChevronRight, Check, Clock, Star } from "lucide-react";
 
 export const Header = () => {
@@ -10,6 +10,28 @@ export const Header = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
   const openBooking = () => setIsBookingOpen(true);
   const closeBooking = () => setIsBookingOpen(false);
+
+  // Expor função globalmente para outros componentes
+  useEffect(() => {
+    // Função global para abrir o modal de qualquer lugar
+    (window as any).openBookingModal = () => {
+      console.log('Modal de reserva sendo aberto!');
+      setIsBookingOpen(true);
+    };
+
+    // Também escutar evento customizado
+    const handleOpenBooking = () => {
+      console.log('Evento openBooking recebido!');
+      setIsBookingOpen(true);
+    };
+    
+    window.addEventListener('openBooking', handleOpenBooking);
+    
+    return () => {
+      window.removeEventListener('openBooking', handleOpenBooking);
+      delete (window as any).openBookingModal;
+    };
+  }, []);
 
   const smoothScrollTo = (id) => {
     const element = document.getElementById(id);
