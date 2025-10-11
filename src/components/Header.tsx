@@ -3,6 +3,63 @@ import { supabase } from "../lib/supabaseClient";
 import { Menu, X, Calendar, Phone, User, LogOut, ChevronRight, Check, Clock, Star, AlertCircle } from "lucide-react";
 
 // ====================================================================================
+// ESTILOS GLOBAIS PARA SCROLLBAR
+// ====================================================================================
+const GlobalScrollbarStyles = () => (
+    <style jsx global>{`
+        /* Estilização da Scrollbar para navegadores Webkit (Chrome, Safari, Edge) */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #1e293b; /* slate-800 */
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%); /* amber-500 to orange-600 */
+            border-radius: 10px;
+            border: 2px solid #1e293b; /* slate-800 */
+            transition: all 0.3s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%); /* amber-400 to orange-500 */
+            border: 2px solid #0f172a; /* slate-900 */
+        }
+
+        ::-webkit-scrollbar-thumb:active {
+            background: linear-gradient(180deg, #fcd34d 0%, #fb923c 100%); /* amber-300 to orange-400 */
+        }
+
+        /* Scrollbar para Firefox */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: #f59e0b #1e293b; /* thumb e track */
+        }
+
+        /* Animação do Toast */
+        @keyframes bounce-in-down {
+            0% { transform: translateY(-100px); opacity: 0; }
+            60% { transform: translateY(10px); opacity: 1; }
+            80% { transform: translateY(-5px); }
+            100% { transform: translateY(0); }
+        }
+        
+        .animate-toast-in {
+            animation: bounce-in-down 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+        }
+
+        /* Smooth scroll para toda a página */
+        html {
+            scroll-behavior: smooth;
+        }
+    `}</style>
+);
+
+// ====================================================================================
 // TIPAGENS
 // ====================================================================================
 
@@ -33,7 +90,7 @@ const SuccessToast = ({ message, setMessage }: SuccessToastProps) => {
         if (message) {
             const timer = setTimeout(() => {
                 setMessage(null);
-            }, 3000); // 3 segundos para visualização
+            }, 3000);
             return () => clearTimeout(timer);
         }
     }, [message, setMessage]);
@@ -41,21 +98,7 @@ const SuccessToast = ({ message, setMessage }: SuccessToastProps) => {
     if (!message) return null;
 
     return (
-        // Animação CSS 'bounce-in-down' deve ser adicionada ao seu arquivo de estilos global
-        <div 
-            className="fixed top-0 inset-x-0 z-[60] flex justify-center p-4 transition-all duration-500 ease-out"
-            // Se estiver usando Tailwind, adicione a classe de animação aqui
-            // Ex: className="... animate-bounce-in-down"
-        >
-            <style jsx global>{`
-                @keyframes bounce-in-down {
-                  0% { transform: translateY(-100px); opacity: 0; }
-                  100% { transform: translateY(0); opacity: 1; }
-                }
-                .animate-toast-in {
-                  animation: bounce-in-down 0.5s ease-out forwards;
-                }
-            `}</style>
+        <div className="fixed top-0 inset-x-0 z-[60] flex justify-center p-4 transition-all duration-500 ease-out">
             <div className="flex items-center space-x-3 bg-green-600 shadow-xl shadow-green-500/50 text-white p-4 rounded-lg sm:max-w-md w-full animate-toast-in">
                 <Check className="h-6 w-6 flex-shrink-0" />
                 <span className="font-semibold text-sm sm:text-base">{message}</span>
@@ -74,7 +117,7 @@ const SuccessToast = ({ message, setMessage }: SuccessToastProps) => {
 export const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isBookingOpen, setIsBookingOpen] = useState(false);
-    const [successMessage, setSuccessMessage] = useState<string | null>(null); // State para o Toast
+    const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
     const user = null; 
 
@@ -107,6 +150,7 @@ export const Header = () => {
 
     return (
         <>
+            <GlobalScrollbarStyles />
             <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
                 <nav className="container mx-auto px-3 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-14 sm:h-16">
@@ -206,7 +250,7 @@ export const Header = () => {
             </header>
 
             <BookingModal isOpen={isBookingOpen} onClose={closeBooking} setSuccessMessage={setSuccessMessage} />
-            <SuccessToast message={successMessage} setMessage={setSuccessMessage} /> {/* TOAST DE SUCESSO */}
+            <SuccessToast message={successMessage} setMessage={setSuccessMessage} />
         </>
     );
 };
@@ -223,14 +267,12 @@ interface ProfessionalSelectorProps {
 
 const ProfessionalSelector = ({ professionals, selectedProfessional, setSelectedProfessional }: ProfessionalSelectorProps) => {
     
-    // Define o profissional por padrão se for o único.
     useEffect(() => {
         if (!selectedProfessional && professionals.length === 1) {
             setSelectedProfessional(professionals[0]);
         }
     }, [professionals, selectedProfessional, setSelectedProfessional]);
     
-    // Procura o profissional principal para destaque (ou o primeiro da lista)
     const davidSousa = professionals.find(p => p.full_name.toLowerCase().includes('david sousa')) || professionals[0];
     const isSingleProfessional = professionals.length === 1 && !!davidSousa;
 
@@ -287,7 +329,7 @@ const ProfessionalSelector = ({ professionals, selectedProfessional, setSelected
 // ====================================================================================
 
 interface DateSelectorProps {
-    selectedDate: string; // Formato YYYY-MM-DD
+    selectedDate: string;
     setSelectedDate: (date: string) => void;
 }
 
@@ -306,17 +348,14 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
         const days = [];
         const isCurrentMonth = viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear();
 
-        // Dias vazios no início
         for (let i = 0; i < startDayIndex; i++) {
             days.push({ day: null, isCurrentMonth: false, isSelectable: false });
         }
 
-        // Dias do mês
         for (let d = 1; d <= totalDays; d++) {
             const date = new Date(viewDate.getFullYear(), viewDate.getMonth(), d);
             const dateString = date.toISOString().split('T')[0];
             
-            // O dia é selecionável se for hoje ou no futuro (sem hora)
             const isSelectable = date.getTime() >= today.setHours(0, 0, 0, 0);
 
             days.push({
@@ -347,11 +386,9 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
 
     return (
         <div className="bg-slate-800 p-4 rounded-xl border border-slate-700 shadow-xl">
-            {/* Header: Mês/Ano e Navegação */}
             <div className="flex items-center justify-between mb-4">
                 <button 
                     onClick={() => handleMonthChange('prev')} 
-                    // Desabilita a navegação para meses passados
                     disabled={viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear()}
                     className="p-2 text-slate-400 hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
@@ -368,14 +405,12 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
                 </button>
             </div>
 
-            {/* Dias da Semana */}
             <div className="grid grid-cols-7 text-center font-semibold text-sm text-slate-400 mb-2">
                 {dayNames.map((day, index) => (
                     <span key={index} className={day === 'D' ? 'text-red-400' : ''}>{day}</span>
                 ))}
             </div>
 
-            {/* Dias do Calendário */}
             <div className="grid grid-cols-7 gap-2">
                 {calendarDays.map((dayData, index) => (
                     <button
@@ -406,7 +441,6 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
 // ====================================================================================
 
 export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: boolean; onClose: () => void; setSuccessMessage: (msg: string | null) => void }) => {
-    // Estados do formulário
     const [step, setStep] = useState(1);
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [selectedProfessional, setSelectedProfessional] = useState<Professional | null>(null);
@@ -415,21 +449,18 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
     const [customerName, setCustomerName] = useState("");
     const [customerPhone, setCustomerPhone] = useState("");
     
-    // Estados de controle
     const [services, setServices] = useState<Service[]>([]);
     const [professionals, setProfessionals] = useState<Professional[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Busca os dados 
     useEffect(() => {
         if (isOpen) {
             const fetchData = async () => {
                 setLoading(true);
                 setError(null);
                 try {
-                    // Busca de Serviços
                     const { data: servicesData, error: servicesError } = await supabase
                         .from('services')
                         .select('*')
@@ -437,11 +468,10 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                     if (servicesError) throw servicesError;
                     setServices(servicesData || []);
 
-                    // Busca de Profissionais (RLS Corrigido)
                     const { data: professionalsData, error: professionalsError } = await supabase
                         .from('user_profiles') 
                         .select('id, full_name') 
-                        .in('role', ['barber', 'admin']); // Filtro para garantir que o David Sousa apareça
+                        .in('role', ['barber', 'admin']);
 
                     if (professionalsError) {
                         throw new Error(`Erro ao buscar profissionais: ${professionalsError.message}. Verifique o RLS da tabela 'user_profiles'.`);
@@ -467,7 +497,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
 
     if (!isOpen) return null;
 
-    // Horários de exemplo 
     const availableTimes = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
 
     const handleSubmit = async () => {
@@ -480,7 +509,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         setError(null);
 
         try {
-            // Passo 1: Upsert do Cliente (Verifica se existe e insere se não)
             let client_id;
             const { data: existingClient, error: selectError } = await supabase
               .from('clients')
@@ -488,14 +516,14 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
               .eq('phone', customerPhone)
               .single();
 
-            if (selectError && selectError.code !== 'PGRST116') { // PGRST116 = No rows found
+            if (selectError && selectError.code !== 'PGRST116') {
                 if (selectError.message.includes('406')) {
                     throw new Error("Falha ao verificar cliente. Permissão de SELECT na tabela 'clients' negada (RLS).");
                 }
             }
             
             if (existingClient) {
-              client_id = existingClient.id; // Usa ID existente
+              client_id = existingClient.id;
             } else {
               const { data: newClient, error: clientError } = await supabase
                 .from('clients')
@@ -508,10 +536,9 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                 }
                 throw clientError;
               }
-              client_id = newClient.id; // Usa novo ID
+              client_id = newClient.id;
             }
 
-            // Passo 2: Inserir o agendamento
             const scheduled_date = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
             
             const appointmentData = {
@@ -521,7 +548,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                 service_type: selectedService.name, 
                 price: selectedService.price,
                 status: 'scheduled', 
-                created_via: 'manual', // CORREÇÃO FINAL para se adequar ao 'CHECK constraint'
+                created_via: 'manual',
                 notes: `Agendado com ${selectedProfessional.full_name}.`,
             };
 
@@ -536,18 +563,17 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                 throw appointmentError;
             }
 
-            // Sucesso! Atualiza a mensagem e fecha o modal
             setSuccessMessage(`Agendamento de ${selectedService.name} confirmado para ${selectedDate} às ${selectedTime}!`);
             
             setTimeout(() => {
                 resetAndClose();
                 setSuccessMessage(null);
-            }, 3000); // 3 segundos para o Toast
+            }, 3000);
 
         } catch (err: any) {
             setError(err.message);
             console.error("Erro no Agendamento:", err.message);
-            setIsSubmitting(false); // Garante que o botão de envio seja reativado em caso de erro
+            setIsSubmitting(false);
         }
     };
 
@@ -582,7 +608,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-hidden border-t-4 sm:border-t-0 sm:border border-amber-500 sm:border-slate-700 flex flex-col">
                 
-                {/* Header Fixo do Modal */}
                 <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4 sm:p-5 md:p-6 text-white flex-shrink-0">
                     <div className="flex justify-between items-center mb-4 sm:mb-5">
                     <div>
@@ -605,14 +630,12 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                     </div>
                 </div>
 
-                {/* Content com Scroll */}
                 <div className="flex-1 overflow-y-auto overscroll-contain">
                     <div className="p-4 sm:p-5 md:p-6">
                         {loading && renderLoading()}
                         {error && !loading && renderError()}
                         {!loading && !error && (
                             <>
-                                {/* STEP 1: Serviços */}
                                 {step === 1 && (
                                     <div className="space-y-3 sm:space-y-4">
                                         <h3 className="text-lg sm:text-xl font-bold text-white">Escolha seu Serviço</h3>
@@ -635,10 +658,8 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                     </div>
                                 )}
                                 
-                                {/* STEP 2: Data e Hora */}
                                 {step === 2 && (
                                     <div className="space-y-4 sm:space-y-5">
-                                        {/* 1. Seleção do Profissional */}
                                         <ProfessionalSelector 
                                             professionals={professionals}
                                             selectedProfessional={selectedProfessional}
@@ -646,13 +667,11 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                         />
 
                                         <h3 className="text-lg sm:text-xl font-bold text-white mb-3">Data</h3>
-                                        {/* 2. Seleção de Data (Calendário Estilizado) */}
                                         <DateSelector 
                                             selectedDate={selectedDate}
                                             setSelectedDate={setSelectedDate}
                                         />
 
-                                        {/* 3. Seleção de Horário */}
                                         <div>
                                             <h3 className="text-lg sm:text-xl font-bold text-white mb-3 mt-5">Horário</h3>
                                             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
@@ -677,7 +696,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                     </div>
                                 )}
 
-                                {/* STEP 3: Confirmação */}
                                 {step === 3 && (
                                     <div className="space-y-4 sm:space-y-5">
                                         <div className="bg-gradient-to-br from-slate-800 to-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-700 space-y-3">
@@ -718,7 +736,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                     </div>
                 </div>
 
-                {/* Footer Fixo do Modal */}
                 <div className="border-t border-slate-700 p-4 sm:p-5 bg-slate-900/95 backdrop-blur flex-shrink-0">
                     <div className="flex gap-3">
                         <button onClick={() => step > 1 ? setStep(step - 1) : resetAndClose()} className="flex-1 sm:flex-none sm:px-6 py-3 border-2 border-slate-600 text-slate-300 rounded-xl hover:border-amber-500 hover:text-amber-400 transition-all duration-300 font-semibold text-sm sm:text-base active:scale-95">
