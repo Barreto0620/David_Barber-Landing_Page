@@ -76,6 +76,13 @@ interface Professional {
     full_name: string;
 }
 
+interface Appointment {
+    id: string;
+    professional_id: string;
+    scheduled_date: string;
+    status: string;
+}
+
 // ====================================================================================
 // COMPONENTE: SUCCESS TOAST
 // ====================================================================================
@@ -437,6 +444,163 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
 
 
 // ====================================================================================
+// COMPONENTE: TIME SELECTOR (COM BUSCA DE HORÁRIOS OCUPADOS)
+// ====================================================================================
+
+interface TimeSelectorProps {
+    selectedDate: string;
+    selectedTime: string;
+    setSelectedTime: (time: string) => void;
+    selectedProfessional: Professional | null;
+    selectedService: Service | null;
+}
+
+const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedProfessional, selectedService }: TimeSelectorProps) => {
+    const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    const allTimes = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+
+    useEffect(() => {
+        const fetchOccupiedTimes = async () => {
+            if (!selectedDate || !selectedProfessional) {
+                setOccupiedTimes([]);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                // Cria o início e fim do dia no horário local de São Paulo (UTC-3)
+                const localDate = new Date(selectedDate + 'T00:00:00');
+                const startOfDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0);
+                const endOfDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 23, 59, 59);
+
+                console.log('🔍 Buscando agendamentos para:', {
+                    data: selectedDate,
+                    profissional: selectedProfessional.full_name,
+                    inicio: startOfDay.toISOString(),
+                    fim: endOfDay.toISOString()
+                });
+
+                const { data, error } = await supabase
+                    .from('appointments')
+                    .select('scheduled_date, service_type, status')
+                    .eq('professional_id', selectedProfessional.id)
+                    .gte('scheduled_date', startOfDay.toISOString())
+                    .lte('scheduled_date', endOfDay.toISOString())
+                    .in('status', ['scheduled', 'in_progress']);
+
+                if (error) {
+                    console.error("❌ Erro ao buscar horários ocupados:", error);
+                    setOccupiedTimes([]);
+                    return;
+                }
+
+                console.log('✅ Agendamentos encontrados:', data);
+
+                const occupied = (data || []).map((appointment: Appointment) => {
+                    // A data vem em UTC do Supabase, convertemos para horário local
+                    const utcDate = new Date(appointment.scheduled_date);
+                    const hours = utcDate.getHours().toString().padStart(2, '0');
+                    const minutes = utcDate.getMinutes().toString().padStart(2, '0');
+                    const timeString = `${hours}:${minutes}`;
+                    
+                    console.log('⏰ Horário ocupado:', timeString, '(UTC:', appointment.scheduled_date, ')');
+                    return timeString;
+                });
+
+                console.log('🚫 Total de horários bloqueados:', occupied);
+                setOccupiedTimes(occupied);
+            } catch (err) {
+                console.error("❌ Erro ao buscar horários:", err);
+                setOccupiedTimes([]);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchOccupiedTimes();
+    }, [selectedDate, selectedProfessional]);
+
+    const getAvailableTimes = () => {
+        if (!selectedService) return allTimes;
+
+        const serviceDuration = selectedService.duration_minutes;
+        
+        return allTimes.filter(time => {
+            if (occupiedTimes.includes(time)) return false;
+
+            const [hours, minutes] = time.split(':').map(Number);
+            const timeInMinutes = hours * 60 + minutes;
+
+            for (let offset = 30; offset < serviceDuration; offset += 30) {
+                const nextTimeInMinutes = timeInMinutes + offset;
+                const nextHours = Math.floor(nextTimeInMinutes / 60);
+                const nextMinutes = nextTimeInMinutes % 60;
+                const nextTime = `${nextHours.toString().padStart(2, '0')}:${nextMinutes.toString().padStart(2, '0')}`;
+                
+                if (occupiedTimes.includes(nextTime)) return false;
+            }
+
+            return true;
+        });
+    };
+
+    const availableTimes = getAvailableTimes();
+
+    return (
+        <div>
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 mt-5 flex items-center">
+                Horário
+                {loading && (
+                    <div className="ml-2 animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent"></div>
+                )}
+            </h3>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                {allTimes.map((time) => {
+                    const isAvailable = availableTimes.includes(time);
+                    const isOccupied = occupiedTimes.includes(time);
+                    
+                    return (
+                        <button 
+                            key={time} 
+                            onClick={() => isAvailable && setSelectedTime(time)} 
+                            disabled={!selectedDate || !isAvailable}
+                            className={`
+                                p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 relative
+                                ${!selectedDate || !isAvailable ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
+                                ${isOccupied && selectedDate ? 'bg-red-900/20 border-red-700 text-red-400' : ''}
+                                ${selectedTime === time && selectedDate && isAvailable ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 
+                                selectedDate && isAvailable ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
+                            `}
+                        >
+                            {time}
+                            {isOccupied && selectedDate && (
+                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900"></span>
+                            )}
+                        </button>
+                    );
+                })}
+            </div>
+            {!selectedDate && (
+                <p className="text-sm text-slate-500 mt-2">Selecione uma data para ver os horários disponíveis.</p>
+            )}
+            {selectedDate && availableTimes.length === 0 && !loading && (
+                <p className="text-sm text-amber-400 mt-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
+                    Todos os horários estão ocupados para esta data. Por favor, escolha outro dia.
+                </p>
+            )}
+            {selectedDate && occupiedTimes.length > 0 && availableTimes.length > 0 && (
+                <p className="text-xs text-slate-400 mt-2">
+                    {occupiedTimes.length} {occupiedTimes.length === 1 ? 'horário ocupado' : 'horários ocupados'} • {availableTimes.length} {availableTimes.length === 1 ? 'disponível' : 'disponíveis'}
+                </p>
+            )}
+        </div>
+    );
+};
+
+
+// ====================================================================================
 // COMPONENTE: BOOKING MODAL
 // ====================================================================================
 
@@ -497,8 +661,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
 
     if (!isOpen) return null;
 
-    const availableTimes = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
-
     const handleSubmit = async () => {
         if (!customerName || !customerPhone || !selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
             setError("Por favor, preencha todas as informações.");
@@ -539,12 +701,22 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
               client_id = newClient.id;
             }
 
-            const scheduled_date = new Date(`${selectedDate}T${selectedTime}:00`).toISOString();
+            // Cria a data e hora no fuso horário local
+            const [year, month, day] = selectedDate.split('-').map(Number);
+            const [hours, minutes] = selectedTime.split(':').map(Number);
+            const localDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+            
+            console.log('📅 Criando agendamento:', {
+                dataLocal: localDateTime.toLocaleString('pt-BR'),
+                dataUTC: localDateTime.toISOString(),
+                profissional: selectedProfessional.full_name,
+                servico: selectedService.name
+            });
             
             const appointmentData = {
                 client_id: client_id,
                 professional_id: selectedProfessional.id, 
-                scheduled_date: scheduled_date,
+                scheduled_date: localDateTime.toISOString(),
                 service_type: selectedService.name, 
                 price: selectedService.price,
                 status: 'scheduled', 
@@ -557,10 +729,19 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
               .insert(appointmentData);
 
             if (appointmentError) {
+                console.error('❌ Erro ao inserir agendamento:', appointmentError);
+                
+                // Verifica se é conflito de horário
+                if (appointmentError.message.includes('unique_professional_schedule') || 
+                    appointmentError.code === '23505') {
+                    throw new Error(`Este horário já está ocupado! Por favor, escolha outro horário ou atualize a página.`);
+                }
+                
                 if (appointmentError.message.includes('violates check constraint')) {
                      throw new Error(`Erro de dados: O valor 'manual' pode estar incorreto para 'created_via'. Verifique os valores permitidos no Supabase.`);
                 }
-                throw appointmentError;
+                
+                throw new Error(`Erro ao criar agendamento: ${appointmentError.message}`);
             }
 
             setSuccessMessage(`Agendamento de ${selectedService.name} confirmado para ${selectedDate} às ${selectedTime}!`);
@@ -586,6 +767,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         setCustomerName("");
         setCustomerPhone("");
         setError(null);
+        setIsSubmitting(false);
         onClose();
     };
 
@@ -672,27 +854,13 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                             setSelectedDate={setSelectedDate}
                                         />
 
-                                        <div>
-                                            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 mt-5">Horário</h3>
-                                            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                                                {availableTimes.map((time) => (
-                                                    <button 
-                                                        key={time} 
-                                                        onClick={() => setSelectedTime(time)} 
-                                                        disabled={!selectedDate}
-                                                        className={`
-                                                            p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95
-                                                            ${!selectedDate ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
-                                                            ${selectedTime === time && selectedDate ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 
-                                                            selectedDate ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
-                                                        `}
-                                                    >
-                                                        {time}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            {!selectedDate && <p className="text-sm text-slate-500 mt-2">Selecione uma data para ver os horários disponíveis.</p>}
-                                        </div>
+                                        <TimeSelector
+                                            selectedDate={selectedDate}
+                                            selectedTime={selectedTime}
+                                            setSelectedTime={setSelectedTime}
+                                            selectedProfessional={selectedProfessional}
+                                            selectedService={selectedService}
+                                        />
                                     </div>
                                 )}
 
