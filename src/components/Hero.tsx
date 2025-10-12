@@ -1,38 +1,186 @@
 import { useState, useEffect } from "react";
-import { Calendar, Star, Clock, CheckCircle } from "lucide-react";
+import { Calendar, Star, Clock, CheckCircle, Activity, UserCheck } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
+
+interface CurrentAppointment {
+  service_type: string;
+  price: number;
+  scheduled_date: string;
+  professional: {
+    full_name: string;
+  };
+  status: string;
+}
+
+interface NextSlot {
+  time: string;
+  available: boolean;
+}
 
 export const Hero = () => {
-  const [liveBooking, setLiveBooking] = useState({
-    service: { name: "Corte + Barba Completa", price: 85 },
-    professional: { name: "Carlos Silva", status: "available" },
-    nextSlot: "Hoje, 15:30"
-  });
+  const [currentAppointment, setCurrentAppointment] = useState<CurrentAppointment | null>(null);
+  const [nextAvailableSlot, setNextAvailableSlot] = useState<NextSlot | null>(null);
+  const [professionalStatus, setProfessionalStatus] = useState<'available' | 'busy' | 'offline'>('available');
+  const [loading, setLoading] = useState(true);
 
-  // Simular atualização de dados em tempo real do Supabase
+  // Horários de funcionamento
+  const businessHours = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+
+  const fetchLiveData = async () => {
+    try {
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+      // Busca agendamento em andamento (scheduled_date <= agora e ainda não completado)
+      const { data: inProgressData, error: inProgressError } = await supabase
+        .from('appointments')
+        .select(`
+          service_type,
+          price,
+          scheduled_date,
+          status,
+          user_profiles!appointments_professional_id_fkey (
+            full_name
+          )
+        `)
+        .eq('status', 'in_progress')
+        .gte('scheduled_date', todayStart.toISOString())
+        .lte('scheduled_date', todayEnd.toISOString())
+        .order('scheduled_date', { ascending: true })
+        .limit(1)
+        .single();
+
+      if (!inProgressError && inProgressData) {
+        setCurrentAppointment({
+          service_type: inProgressData.service_type,
+          price: inProgressData.price,
+          scheduled_date: inProgressData.scheduled_date,
+          professional: inProgressData.user_profiles as any,
+          status: inProgressData.status
+        });
+        setProfessionalStatus('busy');
+      } else {
+        // Se não há atendimento em andamento, busca o próximo agendado para hoje
+        const { data: scheduledData, error: scheduledError } = await supabase
+          .from('appointments')
+          .select(`
+            service_type,
+            price,
+            scheduled_date,
+            status,
+            user_profiles!appointments_professional_id_fkey (
+              full_name
+            )
+          `)
+          .eq('status', 'scheduled')
+          .gte('scheduled_date', now.toISOString())
+          .lte('scheduled_date', todayEnd.toISOString())
+          .order('scheduled_date', { ascending: true })
+          .limit(1)
+          .single();
+
+        if (!scheduledError && scheduledData) {
+          setCurrentAppointment({
+            service_type: scheduledData.service_type,
+            price: scheduledData.price,
+            scheduled_date: scheduledData.scheduled_date,
+            professional: scheduledData.user_profiles as any,
+            status: scheduledData.status
+          });
+          setProfessionalStatus('available');
+        } else {
+          setCurrentAppointment(null);
+          setProfessionalStatus('available');
+        }
+      }
+
+      // Busca todos os agendamentos de hoje
+      const { data: allAppointments, error: allError } = await supabase
+        .from('appointments')
+        .select('scheduled_date')
+        .gte('scheduled_date', todayStart.toISOString())
+        .lte('scheduled_date', todayEnd.toISOString())
+        .in('status', ['scheduled', 'in_progress']);
+
+      if (!allError && allAppointments) {
+        // Extrai os horários ocupados
+        const occupiedTimes = allAppointments.map(apt => {
+          const date = new Date(apt.scheduled_date);
+          const hours = date.getHours().toString().padStart(2, '0');
+          const minutes = date.getMinutes().toString().padStart(2, '0');
+          return `${hours}:${minutes}`;
+        });
+
+        // Encontra o próximo horário disponível
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        const currentTimeInMinutes = currentHour * 60 + currentMinute;
+
+        const nextSlot = businessHours.find(time => {
+          const [hours, minutes] = time.split(':').map(Number);
+          const slotTimeInMinutes = hours * 60 + minutes;
+          
+          return slotTimeInMinutes > currentTimeInMinutes && !occupiedTimes.includes(time);
+        });
+
+        if (nextSlot) {
+          setNextAvailableSlot({ time: nextSlot, available: true });
+        } else {
+          setNextAvailableSlot({ time: "Amanhã, 09:00", available: true });
+        }
+      }
+
+      setLoading(false);
+    } catch (err) {
+      console.error("Erro ao buscar dados ao vivo:", err);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const updateLiveData = setInterval(() => {
-      // Aqui você fará a consulta real ao Supabase
-      // const { data } = await supabase.from('bookings').select()...
-      setLiveBooking(prev => ({
-        ...prev,
-        nextSlot: `Hoje, ${new Date().getHours()}:${String(new Date().getMinutes()).padStart(2, '0')}`
-      }));
-    }, 60000); // Atualiza a cada minuto
+    fetchLiveData();
 
-    return () => clearInterval(updateLiveData);
+    // Atualiza a cada 30 segundos
+    const interval = setInterval(() => {
+      fetchLiveData();
+    }, 30000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const openBookingModal = () => {
-    console.log('Tentando abrir modal de reserva...');
-    
-    // Método 1: Usar função global (mais direto)
     if (typeof (window as any).openBookingModal === 'function') {
-      console.log('Usando função global');
       (window as any).openBookingModal();
     } else {
-      console.log('Função global não encontrada, usando evento');
-      // Método 2: Disparar evento customizado (fallback)
       window.dispatchEvent(new CustomEvent('openBooking'));
+    }
+  };
+
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const getTimeRemaining = (dateString: string) => {
+    const scheduledDate = new Date(dateString);
+    const now = new Date();
+    const diff = scheduledDate.getTime() - now.getTime();
+    
+    if (diff < 0) {
+      // Atendimento em andamento - calcular tempo decorrido
+      const elapsed = Math.abs(diff);
+      const minutesElapsed = Math.floor(elapsed / 60000);
+      return `Em andamento • ${minutesElapsed} min`;
+    } else {
+      // Atendimento agendado - calcular tempo até começar
+      const minutesUntil = Math.floor(diff / 60000);
+      if (minutesUntil < 60) {
+        return `Começa em ${minutesUntil} min`;
+      } else {
+        const hours = Math.floor(minutesUntil / 60);
+        return `Começa em ${hours}h ${minutesUntil % 60}min`;
+      }
     }
   };
 
@@ -137,60 +285,114 @@ export const Hero = () => {
             <div className="bg-slate-800 border-2 border-amber-500/30 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 hover:border-amber-500/50 transition-all duration-300">
               <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  Acompanhar Corte
+                  {currentAppointment?.status === 'in_progress' ? '🔥 Ao Vivo' : '⏳ Acompanhar Corte'}
                 </h3>
                 <div className="flex items-center space-x-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-green-400 font-medium">Ao vivo</span>
+                  <div className={`w-2 h-2 rounded-full ${professionalStatus === 'busy' ? 'bg-orange-400 animate-pulse' : 'bg-green-400 animate-pulse'}`}></div>
+                  <span className={`text-xs font-medium ${professionalStatus === 'busy' ? 'text-orange-400' : 'text-green-400'}`}>
+                    {professionalStatus === 'busy' ? 'Em atendimento' : 'Disponível'}
+                  </span>
                 </div>
               </div>
               
-              <div className="space-y-3 sm:space-y-4">
-                <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                  <div className="text-xs sm:text-sm text-slate-400 mb-1">Serviço</div>
-                  <div className="font-bold text-white text-sm sm:text-base">{liveBooking.service.name}</div>
-                  <div className="text-amber-400 font-bold text-lg sm:text-xl">R$ {liveBooking.service.price},00</div>
+              {loading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-500 border-t-transparent"></div>
                 </div>
-                
-                <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                  <div className="text-xs sm:text-sm text-slate-400 mb-1">Profissional</div>
-                  <div className="font-bold text-white text-sm sm:text-base">{liveBooking.professional.name}</div>
-                  <span className="inline-block mt-2 px-2 sm:px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-bold">
-                    ✓ Disponível
-                  </span>
-                </div>
-                
-                <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                  <div className="text-xs sm:text-sm text-slate-400 mb-1">Próximo Horário</div>
-                  <div className="font-bold text-white flex items-center text-sm sm:text-base">
-                    <Clock className="h-4 w-4 mr-2 text-amber-400" />
-                    {liveBooking.nextSlot}
-                  </div>
-                </div>
-                
-                <button 
-                  onClick={openBookingModal}
-                  className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95"
-                >
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  Confirmar Reserva
-                </button>
+              ) : (
+                <div className="space-y-3 sm:space-y-4">
+                  {currentAppointment ? (
+                    <>
+                      {/* Status do Atendimento */}
+                      {currentAppointment.status === 'in_progress' && (
+                        <div className="p-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-xl">
+                          <div className="flex items-center space-x-2">
+                            <Activity className="h-5 w-5 text-orange-400 animate-pulse" />
+                            <span className="text-orange-400 font-bold text-sm">
+                              {getTimeRemaining(currentAppointment.scheduled_date)}
+                            </span>
+                          </div>
+                        </div>
+                      )}
 
-                <p className="text-xs text-slate-500 text-center">
-                  🔒 Agendamento seguro e rápido
-                </p>
-              </div>
+                      <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="text-xs sm:text-sm text-slate-400">
+                            {currentAppointment.status === 'in_progress' ? 'Serviço em Andamento' : 'Próximo Serviço'}
+                          </div>
+                          {currentAppointment.status === 'scheduled' && (
+                            <div className="text-xs text-amber-400 font-bold">
+                              {formatTime(currentAppointment.scheduled_date)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="font-bold text-white text-sm sm:text-base mb-1">{currentAppointment.service_type}</div>
+                        <div className="text-amber-400 font-bold text-lg sm:text-xl">R$ {currentAppointment.price.toFixed(2)}</div>
+                      </div>
+                      
+                      <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
+                        <div className="text-xs sm:text-sm text-slate-400 mb-1">Profissional</div>
+                        <div className="flex items-center justify-between">
+                          <div className="font-bold text-white text-sm sm:text-base">{currentAppointment.professional.full_name}</div>
+                          {professionalStatus === 'busy' ? (
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-xs font-bold">
+                              <Activity className="h-3 w-3 mr-1" />
+                              Ocupado
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-green-500/20 text-green-400 border border-green-500/30 rounded-full text-xs font-bold">
+                              <UserCheck className="h-3 w-3 mr-1" />
+                              Disponível
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="p-4 bg-slate-700/30 rounded-xl border border-slate-600 text-center">
+                      <UserCheck className="h-12 w-12 mx-auto mb-3 text-green-400" />
+                      <p className="text-white font-bold mb-1">Profissional Disponível</p>
+                      <p className="text-sm text-slate-400">Nenhum atendimento agendado no momento</p>
+                    </div>
+                  )}
+                  
+                  {/* Próximo Horário Disponível */}
+                  {nextAvailableSlot && (
+                    <div className="p-3 sm:p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30">
+                      <div className="text-xs sm:text-sm text-green-400 mb-1 font-bold">Próximo Horário Livre</div>
+                      <div className="font-bold text-white flex items-center text-base sm:text-lg">
+                        <Clock className="h-5 w-5 mr-2 text-green-400" />
+                        Hoje, {nextAvailableSlot.time}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <button 
+                    onClick={openBookingModal}
+                    className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95"
+                  >
+                    <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                    Reservar Horário
+                  </button>
+
+                  <p className="text-xs text-slate-500 text-center">
+                    🔒 Agendamento seguro e rápido • Atualizado em tempo real
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
       {/* Floating Elements */}
-      <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
-        <div className="bg-amber-500 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
-          ⚡ Vagas limitadas hoje!
+      {nextAvailableSlot && (
+        <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
+          <div className="bg-amber-500 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
+            ⚡ Próximo horário: {nextAvailableSlot.time}
+          </div>
         </div>
-      </div>
+      )}
     </section>
   );
 };
