@@ -492,6 +492,13 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
 
                 if (error) {
                     console.error("❌ Erro ao buscar horários ocupados:", error);
+                    // Se for erro de permissão, continua sem bloquear horários
+                    if (error.code === 'PGRST116' || error.message.includes('406')) {
+                        console.warn('⚠️ Sem permissão para buscar horários. Continuando sem validação prévia.');
+                        setOccupiedTimes([]);
+                        setLoading(false);
+                        return;
+                    }
                     setOccupiedTimes([]);
                     return;
                 }
@@ -612,12 +619,122 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
     const [selectedTime, setSelectedTime] = useState("");
     const [customerName, setCustomerName] = useState("");
     const [customerPhone, setCustomerPhone] = useState("");
+    const [nameError, setNameError] = useState("");
+    const [phoneError, setPhoneError] = useState("");
     
     const [services, setServices] = useState<Service[]>([]);
     const [professionals, setProfessionals] = useState<Professional[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Validação de Nome
+    const validateName = (name: string): boolean => {
+        setNameError("");
+        
+        if (!name.trim()) {
+            setNameError("Nome é obrigatório");
+            return false;
+        }
+        
+        if (name.trim().length < 3) {
+            setNameError("Nome deve ter pelo menos 3 caracteres");
+            return false;
+        }
+        
+        // Verifica se contém números
+        if (/\d/.test(name)) {
+            setNameError("Nome não pode conter números");
+            return false;
+        }
+        
+        // Verifica se contém caracteres especiais inválidos
+        if (!/^[A-Za-zÀ-ÿ\s'-]+$/.test(name)) {
+            setNameError("Nome contém caracteres inválidos");
+            return false;
+        }
+        
+        return true;
+    };
+
+    // Formatação de Telefone PT-BR
+    const formatPhone = (value: string): string => {
+        // Remove tudo que não é número
+        const numbers = value.replace(/\D/g, '');
+        
+        // Limita a 11 dígitos (DDD + 9 dígitos)
+        const limited = numbers.slice(0, 11);
+        
+        // Formata conforme o tamanho
+        if (limited.length <= 2) {
+            return limited;
+        } else if (limited.length <= 6) {
+            return `(${limited.slice(0, 2)}) ${limited.slice(2)}`;
+        } else if (limited.length <= 10) {
+            return `(${limited.slice(0, 2)}) ${limited.slice(2, 6)}-${limited.slice(6)}`;
+        } else {
+            return `(${limited.slice(0, 2)}) ${limited.slice(2, 7)}-${limited.slice(7, 11)}`;
+        }
+    };
+
+    // Validação de Telefone
+    const validatePhone = (phone: string): boolean => {
+        setPhoneError("");
+        
+        const numbers = phone.replace(/\D/g, '');
+        
+        if (!numbers) {
+            setPhoneError("Telefone é obrigatório");
+            return false;
+        }
+        
+        if (numbers.length < 10) {
+            setPhoneError("Telefone incompleto");
+            return false;
+        }
+        
+        if (numbers.length === 10) {
+            // Formato antigo: (XX) XXXX-XXXX
+            const ddd = parseInt(numbers.slice(0, 2));
+            if (ddd < 11 || ddd > 99) {
+                setPhoneError("DDD inválido");
+                return false;
+            }
+        }
+        
+        if (numbers.length === 11) {
+            // Formato novo: (XX) 9XXXX-XXXX
+            const ddd = parseInt(numbers.slice(0, 2));
+            const firstDigit = numbers[2];
+            
+            if (ddd < 11 || ddd > 99) {
+                setPhoneError("DDD inválido");
+                return false;
+            }
+            
+            if (firstDigit !== '9') {
+                setPhoneError("Celular deve começar com 9");
+                return false;
+            }
+        }
+        
+        return true;
+    };
+
+    // Handler para mudança de nome
+    const handleNameChange = (value: string) => {
+        // Permite apenas letras, espaços, acentos e hífens
+        const filtered = value.replace(/[^A-Za-zÀ-ÿ\s'-]/g, '');
+        setCustomerName(filtered);
+        if (filtered) validateName(filtered);
+    };
+
+    // Handler para mudança de telefone
+    const handlePhoneChange = (value: string) => {
+        const formatted = formatPhone(value);
+        setCustomerPhone(formatted);
+        if (formatted) validatePhone(formatted);
+    };
 
     useEffect(() => {
         if (isOpen) {
@@ -662,7 +779,16 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
-        if (!customerName || !customerPhone || !selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
+        // Validações antes de enviar
+        const isNameValid = validateName(customerName);
+        const isPhoneValid = validatePhone(customerPhone);
+        
+        if (!isNameValid || !isPhoneValid) {
+            setError("Por favor, corrija os erros nos campos");
+            return;
+        }
+        
+        if (!selectedService || !selectedProfessional || !selectedDate || !selectedTime) {
             setError("Por favor, preencha todas as informações.");
             return;
         }
@@ -671,11 +797,14 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         setError(null);
 
         try {
+            // Remove formatação do telefone para salvar no banco
+            const cleanPhone = customerPhone.replace(/\D/g, '');
+            
             let client_id;
             const { data: existingClient, error: selectError } = await supabase
               .from('clients')
               .select('id')
-              .eq('phone', customerPhone)
+              .eq('phone', cleanPhone)
               .single();
 
             if (selectError && selectError.code !== 'PGRST116') {
@@ -689,7 +818,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
             } else {
               const { data: newClient, error: clientError } = await supabase
                 .from('clients')
-                .insert({ name: customerName, phone: customerPhone })
+                .insert({ name: customerName.trim(), phone: cleanPhone })
                 .select('id')
                 .single();
               if (clientError) {
@@ -744,7 +873,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                 throw new Error(`Erro ao criar agendamento: ${appointmentError.message}`);
             }
 
-            setSuccessMessage(`Agendamento de ${selectedService.name} confirmado para ${selectedDate} às ${selectedTime}!`);
+            setSuccessMessage(`✅ ${selectedService.name} agendado para ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })} às ${selectedTime}!`);
             
             setTimeout(() => {
                 resetAndClose();
@@ -766,6 +895,8 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         setSelectedTime("");
         setCustomerName("");
         setCustomerPhone("");
+        setNameError("");
+        setPhoneError("");
         setError(null);
         setIsSubmitting(false);
         onClose();
@@ -893,8 +1024,55 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                         </div>
                                         <div className="space-y-3">
                                             <h4 className="font-bold text-white text-base sm:text-lg">Complete seus dados</h4>
-                                            <input type="text" placeholder="Nome completo" value={customerName} onChange={(e) => setCustomerName(e.target.value)} className="w-full p-3 sm:p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all text-sm sm:text-base"/>
-                                            <input type="tel" placeholder="(11) 99999-9999" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} className="w-full p-3 sm:p-4 bg-slate-800 border-2 border-slate-700 rounded-xl text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all text-sm sm:text-base"/>
+                                            
+                                            <div>
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Nome completo" 
+                                                    value={customerName} 
+                                                    onChange={(e) => handleNameChange(e.target.value)}
+                                                    onBlur={() => validateName(customerName)}
+                                                    className={`w-full p-3 sm:p-4 bg-slate-800 border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all text-sm sm:text-base ${
+                                                        nameError 
+                                                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                                                            : 'border-slate-700 focus:border-amber-500 focus:ring-amber-500/20'
+                                                    }`}
+                                                />
+                                                {nameError && (
+                                                    <p className="text-red-400 text-xs mt-1.5 flex items-center">
+                                                        <AlertCircle className="h-3 w-3 mr-1" />
+                                                        {nameError}
+                                                    </p>
+                                                )}
+                                            </div>
+                                            
+                                            <div>
+                                                <input 
+                                                    type="tel" 
+                                                    placeholder="(11) 99999-9999" 
+                                                    value={customerPhone} 
+                                                    onChange={(e) => handlePhoneChange(e.target.value)}
+                                                    onBlur={() => validatePhone(customerPhone)}
+                                                    maxLength={15}
+                                                    className={`w-full p-3 sm:p-4 bg-slate-800 border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all text-sm sm:text-base ${
+                                                        phoneError 
+                                                            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
+                                                            : 'border-slate-700 focus:border-amber-500 focus:ring-amber-500/20'
+                                                    }`}
+                                                />
+                                                {phoneError && (
+                                                    <p className="text-red-400 text-xs mt-1.5 flex items-center">
+                                                        <AlertCircle className="h-3 w-3 mr-1" />
+                                                        {phoneError}
+                                                    </p>
+                                                )}
+                                                {customerPhone && !phoneError && customerPhone.replace(/\D/g, '').length >= 10 && (
+                                                    <p className="text-green-400 text-xs mt-1.5 flex items-center">
+                                                        <Check className="h-3 w-3 mr-1" />
+                                                        Telefone válido
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
                                         {error && <p className="text-sm text-red-400 text-center">{error}</p>}
                                     </div>
@@ -910,7 +1088,11 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                             {step === 1 ? 'Cancelar' : 'Voltar'}
                         </button>
                         {step === 3 ? (
-                            <button onClick={handleSubmit} disabled={isSubmitting || !customerName || !customerPhone} className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-95">
+                            <button 
+                                onClick={handleSubmit} 
+                                disabled={isSubmitting || !customerName || !customerPhone || !!nameError || !!phoneError} 
+                                className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-95"
+                            >
                                 {isSubmitting ? (<><div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-2"></div>Confirmando...</>) : (<><Check className="h-5 w-5 mr-2" />Confirmar Reserva</>)}
                             </button>
                         ) : (
