@@ -58,21 +58,6 @@ export const Footer = () => {
                   <Twitter className="h-5 w-5 text-slate-400 group-hover:text-amber-400 transition-colors" />
                 </a>
               </div>
-
-              {/* Newsletter */}
-              <div className="mt-6">
-                <h4 className="text-white font-semibold mb-3">📬 Receba nossas novidades</h4>
-                <div className="flex">
-                  <input 
-                    type="email" 
-                    placeholder="Seu melhor email"
-                    className="flex-1 px-4 py-2 bg-slate-800 border border-slate-700 rounded-l-lg text-white placeholder-slate-500 focus:border-amber-500 focus:outline-none"
-                  />
-                  <button className="px-6 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-r-lg hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-medium">
-                    Assinar
-                  </button>
-                </div>
-              </div>
             </div>
 
             {/* Contact Information */}
