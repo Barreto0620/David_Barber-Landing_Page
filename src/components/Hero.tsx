@@ -32,7 +32,7 @@ export const Hero = () => {
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
       const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-      // Busca agendamento em andamento (scheduled_date <= agora e ainda não completado)
+      // Busca agendamento em andamento
       const { data: inProgressData, error: inProgressError } = await supabase
         .from('appointments')
         .select(`
@@ -49,9 +49,19 @@ export const Hero = () => {
         .lte('scheduled_date', todayEnd.toISOString())
         .order('scheduled_date', { ascending: true })
         .limit(1)
-        .single();
+        .maybeSingle();
 
-      if (!inProgressError && inProgressData) {
+      // Trata erro de permissão (406)
+      if (inProgressError && (inProgressError.code === 'PGRST116' || inProgressError.message.includes('406'))) {
+        console.warn('⚠️ Sem permissão para consultar agendamentos. Hero funcionará sem dados ao vivo.');
+        setCurrentAppointment(null);
+        setProfessionalStatus('available');
+        setNextAvailableSlot({ time: "09:00", available: true });
+        setLoading(false);
+        return;
+      }
+
+      if (inProgressData) {
         setCurrentAppointment({
           service_type: inProgressData.service_type,
           price: inProgressData.price,
@@ -61,7 +71,7 @@ export const Hero = () => {
         });
         setProfessionalStatus('busy');
       } else {
-        // Se não há atendimento em andamento, busca o próximo agendado para hoje
+        // Se não há atendimento em andamento, busca o próximo agendado
         const { data: scheduledData, error: scheduledError } = await supabase
           .from('appointments')
           .select(`
@@ -78,9 +88,19 @@ export const Hero = () => {
           .lte('scheduled_date', todayEnd.toISOString())
           .order('scheduled_date', { ascending: true })
           .limit(1)
-          .single();
+          .maybeSingle();
 
-        if (!scheduledError && scheduledData) {
+        // Trata erro de permissão
+        if (scheduledError && (scheduledError.code === 'PGRST116' || scheduledError.message.includes('406'))) {
+          console.warn('⚠️ Sem permissão para consultar agendamentos.');
+          setCurrentAppointment(null);
+          setProfessionalStatus('available');
+          setNextAvailableSlot({ time: "09:00", available: true });
+          setLoading(false);
+          return;
+        }
+
+        if (scheduledData) {
           setCurrentAppointment({
             service_type: scheduledData.service_type,
             price: scheduledData.price,
@@ -95,7 +115,7 @@ export const Hero = () => {
         }
       }
 
-      // Busca todos os agendamentos de hoje
+      // Busca todos os agendamentos de hoje para horários disponíveis
       const { data: allAppointments, error: allError } = await supabase
         .from('appointments')
         .select('scheduled_date')
@@ -103,7 +123,14 @@ export const Hero = () => {
         .lte('scheduled_date', todayEnd.toISOString())
         .in('status', ['scheduled', 'in_progress']);
 
-      if (!allError && allAppointments) {
+      // Se houver erro de permissão, define horário padrão
+      if (allError && (allError.code === 'PGRST116' || allError.message.includes('406'))) {
+        setNextAvailableSlot({ time: "09:00", available: true });
+        setLoading(false);
+        return;
+      }
+
+      if (allAppointments) {
         // Extrai os horários ocupados
         const occupiedTimes = allAppointments.map(apt => {
           const date = new Date(apt.scheduled_date);
@@ -134,6 +161,10 @@ export const Hero = () => {
       setLoading(false);
     } catch (err) {
       console.error("Erro ao buscar dados ao vivo:", err);
+      // Define valores padrão em caso de erro
+      setCurrentAppointment(null);
+      setProfessionalStatus('available');
+      setNextAvailableSlot({ time: "09:00", available: true });
       setLoading(false);
     }
   };

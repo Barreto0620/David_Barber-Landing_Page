@@ -3,61 +3,79 @@ import { supabase } from "../lib/supabaseClient";
 import { Menu, X, Calendar, Phone, User, LogOut, ChevronRight, Check, Clock, Star, AlertCircle } from "lucide-react";
 
 // ====================================================================================
-// ESTILOS GLOBAIS PARA SCROLLBAR
+// ESTILOS GLOBAIS PARA SCROLLBAR (CORRIGIDO)
 // ====================================================================================
-const GlobalScrollbarStyles = () => (
-    <style jsx global>{`
-        /* Estilização da Scrollbar para navegadores Webkit (Chrome, Safari, Edge) */
-        ::-webkit-scrollbar {
-            width: 12px;
-            height: 12px;
-        }
+const GlobalScrollbarStyles = () => {
+    useEffect(() => {
+        // Cria uma tag <style> e injeta no <head>
+        const styleElement = document.createElement('style');
+        styleElement.id = 'global-scrollbar-styles';
+        styleElement.textContent = `
+            /* Estilização da Scrollbar para navegadores Webkit (Chrome, Safari, Edge) */
+            ::-webkit-scrollbar {
+                width: 12px;
+                height: 12px;
+            }
 
-        ::-webkit-scrollbar-track {
-            background: #1e293b; /* slate-800 */
-            border-radius: 10px;
-        }
+            ::-webkit-scrollbar-track {
+                background: #1e293b; /* slate-800 */
+                border-radius: 10px;
+            }
 
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%); /* amber-500 to orange-600 */
-            border-radius: 10px;
-            border: 2px solid #1e293b; /* slate-800 */
-            transition: all 0.3s ease;
-        }
+            ::-webkit-scrollbar-thumb {
+                background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%); /* amber-500 to orange-600 */
+                border-radius: 10px;
+                border: 2px solid #1e293b; /* slate-800 */
+                transition: all 0.3s ease;
+            }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%); /* amber-400 to orange-500 */
-            border: 2px solid #0f172a; /* slate-900 */
-        }
+            ::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%); /* amber-400 to orange-500 */
+                border: 2px solid #0f172a; /* slate-900 */
+            }
 
-        ::-webkit-scrollbar-thumb:active {
-            background: linear-gradient(180deg, #fcd34d 0%, #fb923c 100%); /* amber-300 to orange-400 */
-        }
+            ::-webkit-scrollbar-thumb:active {
+                background: linear-gradient(180deg, #fcd34d 0%, #fb923c 100%); /* amber-300 to orange-400 */
+            }
 
-        /* Scrollbar para Firefox */
-        * {
-            scrollbar-width: thin;
-            scrollbar-color: #f59e0b #1e293b; /* thumb e track */
-        }
+            /* Scrollbar para Firefox */
+            * {
+                scrollbar-width: thin;
+                scrollbar-color: #f59e0b #1e293b; /* thumb e track */
+            }
 
-        /* Animação do Toast */
-        @keyframes bounce-in-down {
-            0% { transform: translateY(-100px); opacity: 0; }
-            60% { transform: translateY(10px); opacity: 1; }
-            80% { transform: translateY(-5px); }
-            100% { transform: translateY(0); }
-        }
-        
-        .animate-toast-in {
-            animation: bounce-in-down 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
-        }
+            /* Animação do Toast */
+            @keyframes bounce-in-down {
+                0% { transform: translateY(-100px); opacity: 0; }
+                60% { transform: translateY(10px); opacity: 1; }
+                80% { transform: translateY(-5px); }
+                100% { transform: translateY(0); }
+            }
+            
+            .animate-toast-in {
+                animation: bounce-in-down 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            }
 
-        /* Smooth scroll para toda a página */
-        html {
-            scroll-behavior: smooth;
-        }
-    `}</style>
-);
+            /* Smooth scroll para toda a página */
+            html {
+                scroll-behavior: smooth;
+            }
+        `;
+
+        // Adiciona ao head
+        document.head.appendChild(styleElement);
+
+        // Cleanup: remove quando o componente desmontar
+        return () => {
+            const existingStyle = document.getElementById('global-scrollbar-styles');
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+        };
+    }, []);
+
+    return null; // Não renderiza nada visualmente
+};
 
 // ====================================================================================
 // TIPAGENS
@@ -247,7 +265,7 @@ export const Header = () => {
                                 <div className="pt-2 border-t border-slate-700 mt-2">
                                     <button className="w-full px-4 py-2.5 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center text-sm font-medium">
                                         <Phone className="h-4 w-4 mr-2" />
-                                        (11) 9999-9999
+                                        (11) 95843-1653
                                     </button>
                                 </div>
                             </div>
@@ -329,7 +347,6 @@ const ProfessionalSelector = ({ professionals, selectedProfessional, setSelected
         </div>
     );
 };
-
 
 // ====================================================================================
 // COMPONENTE: DATE SELECTOR (CALENDÁRIO ESTILIZADO)
@@ -442,7 +459,6 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
     );
 };
 
-
 // ====================================================================================
 // COMPONENTE: TIME SELECTOR (COM BUSCA DE HORÁRIOS OCUPADOS)
 // ====================================================================================
@@ -470,17 +486,9 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
 
             setLoading(true);
             try {
-                // Cria o início e fim do dia no horário local de São Paulo (UTC-3)
                 const localDate = new Date(selectedDate + 'T00:00:00');
                 const startOfDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0);
                 const endOfDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 23, 59, 59);
-
-                console.log('🔍 Buscando agendamentos para:', {
-                    data: selectedDate,
-                    profissional: selectedProfessional.full_name,
-                    inicio: startOfDay.toISOString(),
-                    fim: endOfDay.toISOString()
-                });
 
                 const { data, error } = await supabase
                     .from('appointments')
@@ -491,10 +499,7 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                     .in('status', ['scheduled', 'in_progress']);
 
                 if (error) {
-                    console.error("❌ Erro ao buscar horários ocupados:", error);
-                    // Se for erro de permissão, continua sem bloquear horários
                     if (error.code === 'PGRST116' || error.message.includes('406')) {
-                        console.warn('⚠️ Sem permissão para buscar horários. Continuando sem validação prévia.');
                         setOccupiedTimes([]);
                         setLoading(false);
                         return;
@@ -503,23 +508,15 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                     return;
                 }
 
-                console.log('✅ Agendamentos encontrados:', data);
-
                 const occupied = (data || []).map((appointment: Appointment) => {
-                    // A data vem em UTC do Supabase, convertemos para horário local
                     const utcDate = new Date(appointment.scheduled_date);
                     const hours = utcDate.getHours().toString().padStart(2, '0');
                     const minutes = utcDate.getMinutes().toString().padStart(2, '0');
-                    const timeString = `${hours}:${minutes}`;
-                    
-                    console.log('⏰ Horário ocupado:', timeString, '(UTC:', appointment.scheduled_date, ')');
-                    return timeString;
+                    return `${hours}:${minutes}`;
                 });
 
-                console.log('🚫 Total de horários bloqueados:', occupied);
                 setOccupiedTimes(occupied);
             } catch (err) {
-                console.error("❌ Erro ao buscar horários:", err);
                 setOccupiedTimes([]);
             } finally {
                 setLoading(false);
@@ -606,7 +603,6 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
     );
 };
 
-
 // ====================================================================================
 // COMPONENTE: BOOKING MODAL
 // ====================================================================================
@@ -628,7 +624,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
     const [error, setError] = useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
-    // Validação de Nome
     const validateName = (name: string): boolean => {
         setNameError("");
         
@@ -642,13 +637,11 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
             return false;
         }
         
-        // Verifica se contém números
         if (/\d/.test(name)) {
             setNameError("Nome não pode conter números");
             return false;
         }
         
-        // Verifica se contém caracteres especiais inválidos
         if (!/^[A-Za-zÀ-ÿ\s'-]+$/.test(name)) {
             setNameError("Nome contém caracteres inválidos");
             return false;
@@ -657,15 +650,10 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         return true;
     };
 
-    // Formatação de Telefone PT-BR
     const formatPhone = (value: string): string => {
-        // Remove tudo que não é número
         const numbers = value.replace(/\D/g, '');
-        
-        // Limita a 11 dígitos (DDD + 9 dígitos)
         const limited = numbers.slice(0, 11);
         
-        // Formata conforme o tamanho
         if (limited.length <= 2) {
             return limited;
         } else if (limited.length <= 6) {
@@ -677,7 +665,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         }
     };
 
-    // Validação de Telefone
     const validatePhone = (phone: string): boolean => {
         setPhoneError("");
         
@@ -694,7 +681,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         }
         
         if (numbers.length === 10) {
-            // Formato antigo: (XX) XXXX-XXXX
             const ddd = parseInt(numbers.slice(0, 2));
             if (ddd < 11 || ddd > 99) {
                 setPhoneError("DDD inválido");
@@ -703,7 +689,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         }
         
         if (numbers.length === 11) {
-            // Formato novo: (XX) 9XXXX-XXXX
             const ddd = parseInt(numbers.slice(0, 2));
             const firstDigit = numbers[2];
             
@@ -721,15 +706,12 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         return true;
     };
 
-    // Handler para mudança de nome
     const handleNameChange = (value: string) => {
-        // Permite apenas letras, espaços, acentos e hífens
         const filtered = value.replace(/[^A-Za-zÀ-ÿ\s'-]/g, '');
         setCustomerName(filtered);
         if (filtered) validateName(filtered);
     };
 
-    // Handler para mudança de telefone
     const handlePhoneChange = (value: string) => {
         const formatted = formatPhone(value);
         setCustomerPhone(formatted);
@@ -779,7 +761,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
     if (!isOpen) return null;
 
     const handleSubmit = async () => {
-        // Validações antes de enviar
         const isNameValid = validateName(customerName);
         const isPhoneValid = validatePhone(customerPhone);
         
@@ -797,7 +778,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         setError(null);
 
         try {
-            // Remove formatação do telefone para salvar no banco
             const cleanPhone = customerPhone.replace(/\D/g, '');
             
             let client_id;
@@ -830,17 +810,9 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
               client_id = newClient.id;
             }
 
-            // Cria a data e hora no fuso horário local
             const [year, month, day] = selectedDate.split('-').map(Number);
             const [hours, minutes] = selectedTime.split(':').map(Number);
             const localDateTime = new Date(year, month - 1, day, hours, minutes, 0);
-            
-            console.log('📅 Criando agendamento:', {
-                dataLocal: localDateTime.toLocaleString('pt-BR'),
-                dataUTC: localDateTime.toISOString(),
-                profissional: selectedProfessional.full_name,
-                servico: selectedService.name
-            });
             
             const appointmentData = {
                 client_id: client_id,
@@ -860,7 +832,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
             if (appointmentError) {
                 console.error('❌ Erro ao inserir agendamento:', appointmentError);
                 
-                // Verifica se é conflito de horário
                 if (appointmentError.message.includes('unique_professional_schedule') || 
                     appointmentError.code === '23505') {
                     throw new Error(`Este horário já está ocupado! Por favor, escolha outro horário ou atualize a página.`);
@@ -902,7 +873,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
         onClose();
     };
 
-
     const renderLoading = () => (
         <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-500 border-t-transparent"></div>
@@ -915,7 +885,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
             <p className="font-semibold">Erro: {error}</p>
         </div>
     );
-
 
     return (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
