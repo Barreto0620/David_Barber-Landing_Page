@@ -141,36 +141,11 @@ export const Footer = () => {
               </div>
             </div>
           </div>
-
-          {/* Trust Badges */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-y border-slate-800">
-            <div className="text-center">
-              <div className="text-2xl mb-1">🏆</div>
-              <div className="text-sm text-slate-400">Prêmio</div>
-              <div className="font-bold text-white text-sm">Melhor de 2023</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-1">⭐</div>
-              <div className="text-sm text-slate-400">Avaliação</div>
-              <div className="font-bold text-white text-sm">4.9/5 Estrelas</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-1">👥</div>
-              <div className="text-sm text-slate-400">Clientes</div>
-              <div className="font-bold text-white text-sm">500+ Satisfeitos</div>
-            </div>
-            <div className="text-center">
-              <div className="text-2xl mb-1">📅</div>
-              <div className="text-sm text-slate-400">Experiência</div>
-              <div className="font-bold text-white text-sm">8 Anos</div>
-            </div>
-          </div>
-
           {/* Bottom Section */}
           <div className="pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
               <div className="text-slate-500 text-sm flex items-center">
-                © {currentYear} David Barber
+                © Todos os direitos reservados.
               </div>
               
               <div className="flex space-x-6 text-sm">

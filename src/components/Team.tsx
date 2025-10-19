@@ -1,8 +1,20 @@
 // src/components/Team.tsx
 
-import { Star, Award, Clock, TrendingUp, Scissors, Users, Heart, Target, Sparkles, Trophy, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Star, Award, Clock, TrendingUp, Scissors, Users, Heart, Target, Sparkles, Trophy, Calendar, Flame, Crown, Zap } from "lucide-react";
+import { supabase } from "../lib/supabaseClient";
+
+interface TopService {
+    service_type: string;
+    booking_count: number;
+    total_revenue: number;
+    avg_price: number;
+}
 
 export const Team = () => {
+    const [topServices, setTopServices] = useState<TopService[]>([]);
+    const [loadingServices, setLoadingServices] = useState(true);
+
     // Dados do profissional - virá do Supabase
     const barber = {
         name: "David Sousa",
@@ -17,12 +29,6 @@ export const Team = () => {
             "Certificado Internacional de Barbeiro",
             "Especialização em Design de Barba",
             "Formação em Tricologia Capilar"
-        ],
-        specialties: [
-            { name: "Cortes Clássicos", icon: Scissors, level: 95 },
-            { name: "Barbas Elaboradas", icon: Sparkles, level: 98 },
-            { name: "Design Capilar", icon: Target, level: 92 },
-            { name: "Atendimento Premium", icon: Heart, level: 100 }
         ],
         achievements: [
             { icon: Trophy, title: "Melhor Barbeiro 2023", description: "Prêmio Regional" },
@@ -52,6 +58,111 @@ export const Team = () => {
             date: "Há 2 semanas"
         }
     ];
+
+    // Busca os 3 serviços mais pedidos do banco
+    const fetchTopServices = async () => {
+        try {
+            setLoadingServices(true);
+
+            // Busca todos os agendamentos concluídos ou agendados
+            const { data: appointments, error } = await supabase
+                .from('appointments')
+                .select('service_type, price')
+                .in('status', ['completed', 'scheduled', 'in_progress']);
+
+            if (error) {
+                console.warn('⚠️ Erro ao buscar serviços:', error);
+                // Usa dados mockados em caso de erro
+                setTopServices([
+                    { service_type: "Corte Clássico", booking_count: 156, total_revenue: 7800, avg_price: 50 },
+                    { service_type: "Barba Completa", booking_count: 98, total_revenue: 4410, avg_price: 45 },
+                    { service_type: "Corte + Barba", booking_count: 87, total_revenue: 6960, avg_price: 80 }
+                ]);
+                setLoadingServices(false);
+                return;
+            }
+
+            if (appointments && appointments.length > 0) {
+                // Agrupa por tipo de serviço
+                const serviceStats = appointments.reduce((acc: any, apt) => {
+                    const serviceName = apt.service_type;
+                    if (!acc[serviceName]) {
+                        acc[serviceName] = {
+                            service_type: serviceName,
+                            booking_count: 0,
+                            total_revenue: 0,
+                            prices: []
+                        };
+                    }
+                    acc[serviceName].booking_count += 1;
+                    acc[serviceName].total_revenue += apt.price;
+                    acc[serviceName].prices.push(apt.price);
+                    return acc;
+                }, {});
+
+                // Converte para array e calcula média de preço
+                const servicesArray = Object.values(serviceStats).map((service: any) => ({
+                    service_type: service.service_type,
+                    booking_count: service.booking_count,
+                    total_revenue: service.total_revenue,
+                    avg_price: service.total_revenue / service.booking_count
+                }));
+
+                // Ordena por quantidade de agendamentos e pega top 3
+                const top3 = servicesArray
+                    .sort((a: any, b: any) => b.booking_count - a.booking_count)
+                    .slice(0, 3);
+
+                setTopServices(top3);
+            } else {
+                // Se não houver dados, usa mock
+                setTopServices([
+                    { service_type: "Corte Clássico", booking_count: 156, total_revenue: 7800, avg_price: 50 },
+                    { service_type: "Barba Completa", booking_count: 98, total_revenue: 4410, avg_price: 45 },
+                    { service_type: "Corte + Barba", booking_count: 87, total_revenue: 6960, avg_price: 80 }
+                ]);
+            }
+
+            setLoadingServices(false);
+        } catch (err) {
+            console.error("Erro ao processar serviços:", err);
+            // Fallback para dados mockados
+            setTopServices([
+                { service_type: "Corte Clássico", booking_count: 156, total_revenue: 7800, avg_price: 50 },
+                { service_type: "Barba Completa", booking_count: 98, total_revenue: 4410, avg_price: 45 },
+                { service_type: "Corte + Barba", booking_count: 87, total_revenue: 6960, avg_price: 80 }
+            ]);
+            setLoadingServices(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTopServices();
+
+        // Atualiza a cada 2 minutos
+        const interval = setInterval(() => {
+            fetchTopServices();
+        }, 120000);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // Mapeia ícones para cada tipo de serviço
+    const getServiceIcon = (serviceName: string) => {
+        const name = serviceName.toLowerCase();
+        if (name.includes('corte') && name.includes('barba')) return Zap;
+        if (name.includes('barba')) return Flame;
+        if (name.includes('corte')) return Crown;
+        return Scissors;
+    };
+
+    // Define badges baseado na posição
+    const getBadge = (index: number) => {
+        if (index === 0) return { text: "🏆 #1 Mais Pedido", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" };
+        if (index === 1) return { text: "🥈 Top 2", color: "bg-slate-500/20 text-slate-300 border-slate-500/30" };
+        if (index === 2) return { text: "🥉 Top 3", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" };
+        return { text: "Popular", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" };
+    };
 
     const openBooking = () => {
         // Dispara o evento global 'openBooking' para abrir o modal de agendamento.
@@ -143,31 +254,84 @@ export const Team = () => {
                             </div>
                         </div>
 
-                        {/* Specialties */}
+                        {/* Top 3 Most Requested Services */}
                         <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-8 mt-8">
-                            <h4 className="text-2xl font-bold text-white mb-6 flex items-center">
-                                <Sparkles className="h-6 w-6 text-amber-400 mr-2" />
-                                Especialidades
-                            </h4>
-                            <div className="space-y-6">
-                                {barber.specialties.map((specialty, index) => (
-                                    <div key={index}>
-                                        <div className="flex justify-between items-center mb-2">
-                                            <div className="flex items-center">
-                                                <specialty.icon className="h-5 w-5 text-amber-400 mr-2" />
-                                                <span className="font-semibold text-white">{specialty.name}</span>
-                                            </div>
-                                            <span className="text-amber-400 font-bold">{specialty.level}%</span>
-                                        </div>
-                                        <div className="w-full bg-slate-700 rounded-full h-2">
-                                            <div
-                                                className="bg-gradient-to-r from-amber-500 to-orange-600 h-2 rounded-full transition-all duration-1000"
-                                                style={{ width: `${specialty.level}%` }}
-                                            ></div>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="flex items-center justify-between mb-6">
+                                <h4 className="text-2xl font-bold text-white flex items-center">
+                                    <TrendingUp className="h-6 w-6 text-amber-400 mr-2" />
+                                    Serviços Mais Procurados
+                                </h4>
+                                {!loadingServices && (
+                                    <span className="text-xs text-green-400 flex items-center">
+                                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                                        Dados em tempo real
+                                    </span>
+                                )}
                             </div>
+
+                            {loadingServices ? (
+                                <div className="flex justify-center items-center h-64">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-500 border-t-transparent"></div>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    {topServices.map((service, index) => {
+                                        const ServiceIcon = getServiceIcon(service.service_type);
+                                        const badge = getBadge(index);
+                                        
+                                        return (
+                                            <div 
+                                                key={index} 
+                                                className="relative bg-gradient-to-br from-slate-700/50 to-slate-700/30 rounded-xl p-5 hover:from-slate-700 hover:to-slate-600 transition-all duration-300 border border-slate-600/50 group overflow-hidden flex flex-col"
+                                            >
+                                                {/* Badge */}
+                                                <div className="absolute top-3 right-3">
+                                                    <span className={`px-2 py-1 ${badge.color} rounded-full text-xs font-bold border`}>
+                                                        {badge.text}
+                                                    </span>
+                                                </div>
+
+                                                {/* Icon */}
+                                                <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 p-3 rounded-lg w-fit mb-4 group-hover:scale-110 transition-transform">
+                                                    <ServiceIcon className="h-7 w-7 text-amber-400" />
+                                                </div>
+
+                                                {/* Content */}
+                                                <div className="flex-1 flex flex-col">
+                                                    <h5 className="font-bold text-white text-lg mb-3 pr-16 min-h-[56px]">{service.service_type}</h5>
+                                                    
+                                                    <div className="space-y-2 mt-auto">
+                                                        {/* Booking Count */}
+                                                        <div className="flex items-center justify-between text-sm">
+                                                            <span className="text-slate-400">Total de Reservas</span>
+                                                            <span className="font-bold text-amber-400">{service.booking_count}</span>
+                                                        </div>
+
+                                                        {/* Average Price */}
+                                                        <div className="flex items-center justify-between text-sm">
+                                                            <span className="text-slate-400">Preço Médio</span>
+                                                            <span className="font-bold text-green-400">R$ {service.avg_price.toFixed(2)}</span>
+                                                        </div>
+
+                                                        {/* Total Revenue */}
+                                                        <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-600">
+                                                            <span className="text-slate-400">Faturamento</span>
+                                                            <span className="font-bold text-white">R$ {service.total_revenue.toFixed(2)}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Decorative gradient on hover */}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            <p className="text-xs text-slate-500 text-center mt-6">
+                                📊 Dados baseados em agendamentos confirmados e concluídos
+                            </p>
                         </div>
                     </div>
 

@@ -1066,7 +1066,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                             </button>
                         ) : (
                             <button onClick={() => { if (step === 1 && selectedService) setStep(2); if (step === 2 && selectedProfessional && selectedDate && selectedTime) setStep(3); }} disabled={(step === 1 && !selectedService) || (step === 2 && (!selectedProfessional || !selectedDate || !selectedTime))} className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-95">
-                                Continuar <ChevronRight className="h-5 w-5 ml-1" />
+                                Continuar para a próxima etapa <ChevronRight className="h-5 w-5 ml-1" />
                             </button>
                         )}
                     </div>
