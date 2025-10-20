@@ -3,48 +3,44 @@ import { supabase } from "../lib/supabaseClient";
 import { Menu, X, Calendar, Phone, User, LogOut, ChevronRight, Check, Clock, Star, AlertCircle } from "lucide-react";
 
 // ====================================================================================
-// ESTILOS GLOBAIS PARA SCROLLBAR (CORRIGIDO)
+// ESTILOS GLOBAIS PARA SCROLLBAR
 // ====================================================================================
 const GlobalScrollbarStyles = () => {
     useEffect(() => {
-        // Cria uma tag <style> e injeta no <head>
         const styleElement = document.createElement('style');
         styleElement.id = 'global-scrollbar-styles';
         styleElement.textContent = `
-            /* Estilização da Scrollbar para navegadores Webkit (Chrome, Safari, Edge) */
             ::-webkit-scrollbar {
                 width: 12px;
                 height: 12px;
             }
 
             ::-webkit-scrollbar-track {
-                background: #1e293b; /* slate-800 */
+                background: #1e293b;
                 border-radius: 10px;
             }
 
             ::-webkit-scrollbar-thumb {
-                background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%); /* amber-500 to orange-600 */
+                background: linear-gradient(180deg, #f59e0b 0%, #ea580c 100%);
                 border-radius: 10px;
-                border: 2px solid #1e293b; /* slate-800 */
+                border: 2px solid #1e293b;
                 transition: all 0.3s ease;
             }
 
             ::-webkit-scrollbar-thumb:hover {
-                background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%); /* amber-400 to orange-500 */
-                border: 2px solid #0f172a; /* slate-900 */
+                background: linear-gradient(180deg, #fbbf24 0%, #f97316 100%);
+                border: 2px solid #0f172a;
             }
 
             ::-webkit-scrollbar-thumb:active {
-                background: linear-gradient(180deg, #fcd34d 0%, #fb923c 100%); /* amber-300 to orange-400 */
+                background: linear-gradient(180deg, #fcd34d 0%, #fb923c 100%);
             }
 
-            /* Scrollbar para Firefox */
             * {
                 scrollbar-width: thin;
-                scrollbar-color: #f59e0b #1e293b; /* thumb e track */
+                scrollbar-color: #f59e0b #1e293b;
             }
 
-            /* Animação do Toast */
             @keyframes bounce-in-down {
                 0% { transform: translateY(-100px); opacity: 0; }
                 60% { transform: translateY(10px); opacity: 1; }
@@ -56,16 +52,13 @@ const GlobalScrollbarStyles = () => {
                 animation: bounce-in-down 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
             }
 
-            /* Smooth scroll para toda a página */
             html {
                 scroll-behavior: smooth;
             }
         `;
 
-        // Adiciona ao head
         document.head.appendChild(styleElement);
 
-        // Cleanup: remove quando o componente desmontar
         return () => {
             const existingStyle = document.getElementById('global-scrollbar-styles');
             if (existingStyle) {
@@ -74,7 +67,7 @@ const GlobalScrollbarStyles = () => {
         };
     }, []);
 
-    return null; // Não renderiza nada visualmente
+    return null;
 };
 
 // ====================================================================================
@@ -90,7 +83,7 @@ interface Service {
 }
 
 interface Professional {
-    id: string; // UUID
+    id: string;
     full_name: string;
 }
 
@@ -349,7 +342,7 @@ const ProfessionalSelector = ({ professionals, selectedProfessional, setSelected
 };
 
 // ====================================================================================
-// COMPONENTE: DATE SELECTOR (CALENDÁRIO ESTILIZADO)
+// COMPONENTE: DATE SELECTOR
 // ====================================================================================
 
 interface DateSelectorProps {
@@ -460,7 +453,7 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
 };
 
 // ====================================================================================
-// COMPONENTE: TIME SELECTOR (COM BUSCA DE HORÁRIOS OCUPADOS)
+// COMPONENTE: TIME SELECTOR (CORRIGIDO COM FUSO HORÁRIO)
 // ====================================================================================
 
 interface TimeSelectorProps {
@@ -486,9 +479,11 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
 
             setLoading(true);
             try {
-                const localDate = new Date(selectedDate + 'T00:00:00');
-                const startOfDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 0, 0, 0);
-                const endOfDay = new Date(localDate.getFullYear(), localDate.getMonth(), localDate.getDate(), 23, 59, 59);
+                const [year, month, day] = selectedDate.split('-').map(Number);
+                
+                // Criar datas em horário local (Brasília)
+                const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
+                const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
 
                 const { data, error } = await supabase
                     .from('appointments')
@@ -509,9 +504,11 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                 }
 
                 const occupied = (data || []).map((appointment: Appointment) => {
+                    // Converter UTC para horário local
                     const utcDate = new Date(appointment.scheduled_date);
-                    const hours = utcDate.getHours().toString().padStart(2, '0');
-                    const minutes = utcDate.getMinutes().toString().padStart(2, '0');
+                    const localDate = new Date(utcDate.getTime());
+                    const hours = localDate.getHours().toString().padStart(2, '0');
+                    const minutes = localDate.getMinutes().toString().padStart(2, '0');
                     return `${hours}:${minutes}`;
                 });
 
@@ -526,14 +523,36 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
         fetchOccupiedTimes();
     }, [selectedDate, selectedProfessional]);
 
+    // FUNÇÃO CORRIGIDA: Verifica se o horário já passou considerando data E hora
+    const isTimePassed = (time: string): boolean => {
+        if (!selectedDate) return false;
+        
+        const now = new Date();
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const [hours, minutes] = time.split(':').map(Number);
+        
+        // Criar data/hora selecionada em horário local
+        const selectedDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+        
+        // Adicionar margem de segurança de 30 minutos
+        const nowPlus30Min = new Date(now.getTime() + 30 * 60 * 1000);
+        
+        return selectedDateTime <= nowPlus30Min;
+    };
+
     const getAvailableTimes = () => {
         if (!selectedService) return allTimes;
 
         const serviceDuration = selectedService.duration_minutes;
         
         return allTimes.filter(time => {
+            // Verifica se o horário já passou
+            if (isTimePassed(time)) return false;
+            
+            // Verifica se está ocupado
             if (occupiedTimes.includes(time)) return false;
 
+            // Verifica slots necessários para o serviço
             const [hours, minutes] = time.split(':').map(Number);
             const timeInMinutes = hours * 60 + minutes;
 
@@ -562,24 +581,25 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
             </h3>
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
                 {allTimes.map((time) => {
+                    const isPassed = isTimePassed(time);
                     const isAvailable = availableTimes.includes(time);
                     const isOccupied = occupiedTimes.includes(time);
                     
                     return (
                         <button 
                             key={time} 
-                            onClick={() => isAvailable && setSelectedTime(time)} 
-                            disabled={!selectedDate || !isAvailable}
+                            onClick={() => isAvailable && !isPassed && setSelectedTime(time)} 
+                            disabled={!selectedDate || !isAvailable || isPassed}
                             className={`
                                 p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 relative
-                                ${!selectedDate || !isAvailable ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
-                                ${isOccupied && selectedDate ? 'bg-red-900/20 border-red-700 text-red-400' : ''}
-                                ${selectedTime === time && selectedDate && isAvailable ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 
-                                selectedDate && isAvailable ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
+                                ${!selectedDate || !isAvailable || isPassed ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
+                                ${(isOccupied || isPassed) && selectedDate ? 'bg-red-900/20 border-red-700 text-red-400' : ''}
+                                ${selectedTime === time && selectedDate && isAvailable && !isPassed ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 
+                                selectedDate && isAvailable && !isPassed ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
                             `}
                         >
                             {time}
-                            {isOccupied && selectedDate && (
+                            {(isOccupied || isPassed) && selectedDate && (
                                 <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900"></span>
                             )}
                         </button>
@@ -591,12 +611,12 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
             )}
             {selectedDate && availableTimes.length === 0 && !loading && (
                 <p className="text-sm text-amber-400 mt-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
-                    Todos os horários estão ocupados para esta data. Por favor, escolha outro dia.
+                    Não há horários disponíveis para esta data. Por favor, escolha outro dia.
                 </p>
             )}
-            {selectedDate && occupiedTimes.length > 0 && availableTimes.length > 0 && (
+            {selectedDate && availableTimes.length > 0 && (
                 <p className="text-xs text-slate-400 mt-2">
-                    {occupiedTimes.length} {occupiedTimes.length === 1 ? 'horário ocupado' : 'horários ocupados'} • {availableTimes.length} {availableTimes.length === 1 ? 'disponível' : 'disponíveis'}
+                    {allTimes.length - availableTimes.length} {allTimes.length - availableTimes.length === 1 ? 'horário indisponível' : 'horários indisponíveis'} • {availableTimes.length} {availableTimes.length === 1 ? 'disponível' : 'disponíveis'}
                 </p>
             )}
         </div>
@@ -774,6 +794,18 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
             return;
         }
         
+        // Validação de horário passado
+        const [year, month, day] = selectedDate.split('-').map(Number);
+        const [hours, minutes] = selectedTime.split(':').map(Number);
+        const selectedDateTime = new Date(year, month - 1, day, hours, minutes, 0);
+        const now = new Date();
+        const nowPlus30Min = new Date(now.getTime() + 30 * 60 * 1000);
+        
+        if (selectedDateTime <= nowPlus30Min) {
+            setError("Não é possível agendar para horários já passados ou com menos de 30 minutos de antecedência.");
+            return;
+        }
+        
         setIsSubmitting(true);
         setError(null);
 
@@ -810,8 +842,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
               client_id = newClient.id;
             }
 
-            const [year, month, day] = selectedDate.split('-').map(Number);
-            const [hours, minutes] = selectedTime.split(':').map(Number);
+            // Criar data/hora em horário local e converter para UTC
             const localDateTime = new Date(year, month - 1, day, hours, minutes, 0);
             
             const appointmentData = {
@@ -844,7 +875,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                 throw new Error(`Erro ao criar agendamento: ${appointmentError.message}`);
             }
 
-            setSuccessMessage(`✅ ${selectedService.name} agendado para ${new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })} às ${selectedTime}!`);
+            setSuccessMessage(`✅ ${selectedService.name} agendado para ${localDateTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })} às ${selectedTime}!`);
             
             setTimeout(() => {
                 resetAndClose();
@@ -1066,7 +1097,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                             </button>
                         ) : (
                             <button onClick={() => { if (step === 1 && selectedService) setStep(2); if (step === 2 && selectedProfessional && selectedDate && selectedTime) setStep(3); }} disabled={(step === 1 && !selectedService) || (step === 2 && (!selectedProfessional || !selectedDate || !selectedTime))} className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-95">
-                                Continuar para a próxima etapa <ChevronRight className="h-5 w-5 ml-1" />
+                                Continuar para a próxima etapa <ChevronRight className="h-5 w-5 ml-1" />
                             </button>
                         )}
                     </div>
