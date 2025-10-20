@@ -39,7 +39,8 @@ export const Footer = () => {
                             >
                                 David Barber
                             </button>
-                            <p className="text-slate-400 mb-6 max-w-md leading-relaxed">
+                            {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                            <p className="text-slate-300 mb-6 max-w-md leading-relaxed">
                                 Transformando o cuidado masculino com estilo premium e atendimento 
                                 personalizado desde 2016. Sua confiança é nossa especialidade.
                             </p>
@@ -53,7 +54,8 @@ export const Footer = () => {
                                     className="bg-slate-800 p-3 rounded-lg hover:bg-amber-500/20 hover:border-amber-500 border-2 border-transparent transition-all duration-300 group"
                                     aria-label="Instagram"
                                 >
-                                    <Instagram className="h-5 w-5 text-slate-400 group-hover:text-amber-400 transition-colors" />
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
+                                    <Instagram className="h-5 w-5 text-slate-200 group-hover:text-amber-400 transition-colors" />
                                 </a>
                                 <a 
                                     href="https://facebook.com" 
@@ -62,7 +64,8 @@ export const Footer = () => {
                                     className="bg-slate-800 p-3 rounded-lg hover:bg-amber-500/20 hover:border-amber-500 border-2 border-transparent transition-all duration-300 group"
                                     aria-label="Facebook"
                                 >
-                                    <Facebook className="h-5 w-5 text-slate-400 group-hover:text-amber-400 transition-colors" />
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
+                                    <Facebook className="h-5 w-5 text-slate-200 group-hover:text-amber-400 transition-colors" />
                                 </a>
                                 <a 
                                     href="https://twitter.com" 
@@ -71,14 +74,16 @@ export const Footer = () => {
                                     className="bg-slate-800 p-3 rounded-lg hover:bg-amber-500/20 hover:border-amber-500 border-2 border-transparent transition-all duration-300 group"
                                     aria-label="Twitter"
                                 >
-                                    <Twitter className="h-5 w-5 text-slate-400 group-hover:text-amber-400 transition-colors" />
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
+                                    <Twitter className="h-5 w-5 text-slate-200 group-hover:text-amber-400 transition-colors" />
                                 </a>
                             </div>
                         </div>
 
                         {/* Contact Information */}
                         <div>
-                            <h4 className="text-lg font-semibold mb-4 text-white">📍 Contato</h4>
+                            {/* [CORREÇÃO 1.3.1] h4 -> h3 (Mantido estilo) */}
+                            <h3 className="text-lg font-semibold mb-4 text-white">📍 Contato</h3>
                             <div className="space-y-3">
                                 <a 
                                     href="https://maps.google.com" 
@@ -87,7 +92,8 @@ export const Footer = () => {
                                     className="flex items-start space-x-3 group hover:text-amber-400 transition-colors"
                                 >
                                     <MapPin className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
-                                    <div className="text-slate-400 group-hover:text-amber-400 transition-colors">
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                    <div className="text-slate-300 group-hover:text-amber-400 transition-colors">
                                         <div>Rua dos Barbeiros, 123</div>
                                         <div>Vila Premium - SP</div>
                                         <div>01234-567</div>
@@ -96,7 +102,8 @@ export const Footer = () => {
                                 
                                 <a 
                                     href="tel:+5511999999999" 
-                                    className="flex items-center space-x-3 text-slate-400 hover:text-amber-400 transition-colors group"
+                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                                    className="flex items-center space-x-3 text-slate-300 hover:text-amber-400 transition-colors group"
                                 >
                                     <Phone className="h-5 w-5 text-amber-400" />
                                     <span>(11) 99999-9999</span>
@@ -106,7 +113,8 @@ export const Footer = () => {
                                     href="https://wa.me/5511999999999" 
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="flex items-center space-x-3 text-slate-400 hover:text-amber-400 transition-colors group"
+                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                                    className="flex items-center space-x-3 text-slate-300 hover:text-amber-400 transition-colors group"
                                 >
                                     <Phone className="h-5 w-5 text-green-400" />
                                     <span>WhatsApp</span>
@@ -115,7 +123,8 @@ export const Footer = () => {
                                 
                                 <a 
                                     href="mailto:contato@davidbarber.com" 
-                                    className="flex items-center space-x-3 text-slate-400 hover:text-amber-400 transition-colors group"
+                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                                    className="flex items-center space-x-3 text-slate-300 hover:text-amber-400 transition-colors group"
                                 >
                                     <Mail className="h-5 w-5 text-amber-400" />
                                     <span>contato@davidbarber.com</span>
@@ -125,25 +134,29 @@ export const Footer = () => {
 
                         {/* Opening Hours */}
                         <div>
-                            <h4 className="text-lg font-semibold mb-4 text-white flex items-center">
+                            {/* [CORREÇÃO 1.3.1] h4 -> h3 (Mantido estilo) */}
+                            <h3 className="text-lg font-semibold mb-4 text-white flex items-center">
                                 <Clock className="h-5 w-5 text-amber-400 mr-2" />
                                 Funcionamento
-                            </h4>
+                            </h3>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-400 font-medium">Segunda - Sexta</span>
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                    <span className="text-slate-300 font-medium">Segunda - Sexta</span>
                                     <span className="text-white font-bold">09:00 - 19:00</span>
                                 </div>
                                 <div className="h-px bg-slate-800"></div>
                                 
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-400 font-medium">Sábado</span>
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                    <span className="text-slate-300 font-medium">Sábado</span>
                                     <span className="text-white font-bold">08:00 - 17:00</span>
                                 </div>
                                 <div className="h-px bg-slate-800"></div>
                                 
                                 <div className="flex justify-between items-center text-sm">
-                                    <span className="text-slate-400 font-medium">Domingo</span>
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                    <span className="text-slate-300 font-medium">Domingo</span>
                                     <span className="text-white font-bold">09:00 - 15:00</span>
                                 </div>
 
@@ -160,21 +173,24 @@ export const Footer = () => {
                     {/* Bottom Section */}
                     <div className="pt-8">
                         <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-                            <div className="text-slate-500 text-sm flex items-center">
+                            {/* [CORREÇÃO 1.4.3] text-slate-500 -> text-slate-300 */}
+                            <div className="text-slate-300 text-sm flex items-center">
                                 © {currentYear} Todos os direitos reservados.
                             </div>
                             
                             <div className="flex space-x-6 text-sm">
                                 <button 
                                     onClick={() => setShowTerms(true)}
-                                    className="text-slate-400 hover:text-amber-400 transition-colors"
+                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200
+                                    className="text-slate-200 hover:text-amber-400 transition-colors"
                                 >
                                     Termos de Uso
                                 </button>
                                 {/* Botão de Política de Privacidade Adicionado */}
                                 <button 
                                     onClick={() => setShowPrivacy(true)}
-                                    className="text-slate-400 hover:text-amber-400 transition-colors"
+                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200
+                                    className="text-slate-200 hover:text-amber-400 transition-colors"
                                 >
                                     Política de Privacidade
                                 </button>
@@ -203,7 +219,8 @@ export const Footer = () => {
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6 text-slate-300">
+                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6 text-slate-200">
                             <div>
                                 <h4 className="text-xl font-semibold text-white mb-3 flex items-center">
                                     <span className="text-amber-400 mr-2">1.</span> Aceitação dos Termos
@@ -426,10 +443,12 @@ export const Footer = () => {
                         </div>
 
                         {/* Content */}
-                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6 text-slate-300">
+                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                        <div className="p-6 overflow-y-auto max-h-[calc(90vh-180px)] space-y-6 text-slate-200">
                             
                             <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4">
-                                <p className="text-blue-300 font-semibold">
+                                {/* [CORREÇÃO 1.4.3] text-blue-300 -> text-blue-200 */}
+                                <p className="text-blue-200 font-semibold">
                                     <Lock className="h-4 w-4 inline mr-2" /> Sua privacidade é nossa prioridade. Esta política detalha como 
                                     coletamos, usamos e protegemos suas informações pessoais, em conformidade 
                                     com a Lei Geral de Proteção de Dados (LGPD).
@@ -537,7 +556,8 @@ export const Footer = () => {
                             </div>
                             
                             <div className="bg-slate-800/50 rounded-lg p-4 border border-slate-700">
-                                <p className="text-sm text-slate-400 italic">
+                                {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                <p className="text-sm text-slate-300 italic">
                                     Última atualização: {new Date().toLocaleDateString('pt-BR')}. Esta política pode ser alterada, 
                                     e notificaremos sobre mudanças significativas.
                                 </p>

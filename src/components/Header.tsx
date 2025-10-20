@@ -180,6 +180,16 @@ export const Header = () => {
     return (
         <>
             <GlobalScrollbarStyles />
+            {/* [CORREÇÃO 2.4.1] Adicionado link "Pular para o conteúdo principal".
+              Ele é visualmente oculto, mas acessível por teclado (focável).
+            */}
+            <a 
+              href="#main-content" 
+              className="absolute left-[-9999px] top-0 z-[99999] p-3 bg-amber-500 text-white font-bold rounded-b-lg focus:left-4"
+            >
+              Pular para o conteúdo principal
+            </a>
+            
             <header className="bg-slate-900/95 backdrop-blur-md border-b border-slate-800 sticky top-0 z-40">
                 <nav className="container mx-auto px-3 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-14 sm:h-16">
@@ -197,13 +207,16 @@ export const Header = () => {
                                 <button onClick={() => smoothScrollTo('home')} className="text-white hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
                                     Início
                                 </button>
-                                <button onClick={() => smoothScrollTo('services')} className="text-slate-300 hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
+                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                <button onClick={() => smoothScrollTo('services')} className="text-slate-200 hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
                                     Serviços
                                 </button>
-                                <button onClick={() => smoothScrollTo('team')} className="text-slate-300 hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
+                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                <button onClick={() => smoothScrollTo('team')} className="text-slate-200 hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
                                     Equipe
                                 </button>
-                                <button onClick={() => smoothScrollTo('contact')} className="text-slate-300 hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
+                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                <button onClick={() => smoothScrollTo('contact')} className="text-slate-200 hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base">
                                     Contato
                                 </button>
                             </div>
@@ -222,7 +235,8 @@ export const Header = () => {
                                         <User className="h-3 w-3 xl:h-4 xl:w-4 mr-1 xl:mr-2" />
                                         Conta
                                     </button>
-                                    <button className="p-2 text-slate-400 hover:text-white transition-colors">
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
+                                    <button className="p-2 text-slate-200 hover:text-white transition-colors">
                                         <LogOut className="h-4 w-4" />
                                     </button>
                                 </div>
@@ -257,13 +271,16 @@ export const Header = () => {
                                 <button onClick={() => smoothScrollTo('home')} className="block w-full text-left px-3 py-2.5 text-white hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
                                     Início
                                 </button>
-                                <button onClick={() => smoothScrollTo('services')} className="block w-full text-left px-3 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
+                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                <button onClick={() => smoothScrollTo('services')} className="block w-full text-left px-3 py-2.5 text-slate-200 hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
                                     Serviços
                                 </button>
-                                <button onClick={() => smoothScrollTo('team')} className="block w-full text-left px-3 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
+                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                <button onClick={() => smoothScrollTo('team')} className="block w-full text-left px-3 py-2.5 text-slate-200 hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
                                     Equipe
                                 </button>
-                                <button onClick={() => smoothScrollTo('contact')} className="block w-full text-left px-3 py-2.5 text-slate-300 hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
+                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                <button onClick={() => smoothScrollTo('contact')} className="block w-full text-left px-3 py-2.5 text-slate-200 hover:text-amber-400 hover:bg-slate-700 rounded-lg transition-all duration-300 font-medium text-sm">
                                     Contato
                                 </button>
                                 <div className="pt-2 border-t border-slate-700 mt-2">
@@ -335,7 +352,8 @@ const ProfessionalSelector = ({ professionals, selectedProfessional, setSelected
                                     <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-700 flex items-center justify-center text-xl sm:text-2xl">👨‍💼</div>
                                     <div>
                                         <h4 className="font-bold text-white text-sm sm:text-base">{pro.full_name}</h4>
-                                        <p className="text-xs text-slate-400">Barbeiro</p>
+                                        {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                        <p className="text-xs text-slate-300">Barbeiro</p>
                                     </div>
                                 </div>
                                 {selectedProfessional?.id === pro.id && <Check className="h-5 w-5 text-amber-500" />}
@@ -344,7 +362,8 @@ const ProfessionalSelector = ({ professionals, selectedProfessional, setSelected
                     ))
                 )
             ) : (
-                <div className="text-center p-4 bg-slate-800 rounded-xl text-slate-400">
+                // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                <div className="text-center p-4 bg-slate-800 rounded-xl text-slate-300">
                     Nenhum profissional encontrado. Verifique o RLS e o campo 'role' no Supabase.
                 </div>
             )}
@@ -418,7 +437,8 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
                 <button 
                     onClick={() => handleMonthChange('prev')} 
                     disabled={viewDate.getMonth() === today.getMonth() && viewDate.getFullYear() === today.getFullYear()}
-                    className="p-2 text-slate-400 hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                    className="p-2 text-slate-300 hover:text-amber-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                 >
                     <ChevronRight className="h-5 w-5 rotate-180" />
                 </button>
@@ -427,13 +447,15 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
                 </span>
                 <button 
                     onClick={() => handleMonthChange('next')} 
-                    className="p-2 text-slate-400 hover:text-amber-400 transition-colors"
+                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                    className="p-2 text-slate-300 hover:text-amber-400 transition-colors"
                 >
                     <ChevronRight className="h-5 w-5" />
                 </button>
             </div>
 
-            <div className="grid grid-cols-7 text-center font-semibold text-sm text-slate-400 mb-2">
+            {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+            <div className="grid grid-cols-7 text-center font-semibold text-sm text-slate-300 mb-2">
                 {dayNames.map((day, index) => (
                     <span key={index} className={day === 'D' ? 'text-red-400' : ''}>{day}</span>
                 ))}
@@ -447,7 +469,7 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
                         disabled={!dayData.isSelectable}
                         className={`
                             h-10 w-full flex items-center justify-center rounded-full font-semibold text-sm transition-all duration-200
-                            ${!dayData.day || !dayData.isSelectable ? 'text-slate-600 cursor-default' : ''}
+                            ${!dayData.day || !dayData.isSelectable ? 'text-slate-500 cursor-default' : ''}
                             ${dayData.isSelectable ? 'hover:bg-amber-500/10 hover:text-amber-400' : ''}
                             ${dayData.isSelected ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30' : ''}
                             ${dayData.isToday && !dayData.isSelected ? 'border-2 border-amber-500 text-amber-400' : ''}
@@ -629,10 +651,10 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                             disabled={!selectedDate || !isAvailable || isPassed}
                             className={`
                                 p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 relative
-                                ${!selectedDate || !isAvailable || isPassed ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
+                                ${!selectedDate || !isAvailable || isPassed ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-400' : ''}
                                 ${(isOccupied || isPassed) && selectedDate ? 'bg-red-900/20 border-red-700 text-red-400' : ''}
                                 ${selectedTime === time && selectedDate && isAvailable && !isPassed ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' : 
-                                selectedDate && isAvailable && !isPassed ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
+                                selectedDate && isAvailable && !isPassed ? 'border-slate-700 text-slate-200 hover:border-amber-400 hover:bg-slate-800' : ''}
                             `}
                         >
                             {time}
@@ -644,7 +666,8 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                 })}
             </div>
             {!selectedDate && (
-                <p className="text-sm text-slate-500 mt-2">Selecione uma data para ver os horários disponíveis.</p>
+                // [CORREÇÃO 1.4.3] text-slate-500 -> text-slate-300
+                <p className="text-sm text-slate-300 mt-2">Selecione uma data para ver os horários disponíveis.</p>
             )}
             {selectedDate && availableTimes.length === 0 && !loading && (
                 <p className="text-sm text-amber-400 mt-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
@@ -652,7 +675,8 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                 </p>
             )}
             {selectedDate && availableTimes.length > 0 && (
-                <p className="text-xs text-slate-400 mt-2">
+                // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
+                <p className="text-xs text-slate-300 mt-2">
                     {allTimes.length - availableTimes.length} {allTimes.length - availableTimes.length === 1 ? 'horário indisponível' : 'horários indisponíveis'} • {availableTimes.length} {availableTimes.length === 1 ? 'disponível' : 'disponíveis'}
                 </p>
             )}
@@ -960,7 +984,8 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                     <div className="flex justify-between items-center mb-4 sm:mb-5">
                     <div>
                         <h2 className="text-xl sm:text-2xl font-bold">Agendar Horário</h2>
-                        <p className="text-xs sm:text-sm text-white/80 mt-0.5">Passo {step} de 3</p>
+                        {/* [CORREÇÃO 1.4.3] text-white/80 -> text-white/90 */}
+                        <p className="text-xs sm:text-sm text-white/90 mt-0.5">Passo {step} de 3</p>
                     </div>
                     <button onClick={resetAndClose} className="hover:bg-white/20 p-2 rounded-full transition-colors active:scale-95">
                         <X className="h-5 w-5 sm:h-6 sm:w-6" />
@@ -992,10 +1017,12 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                                 <button key={service.id} onClick={() => { setSelectedService(service); setTimeout(() => setStep(2), 250); }} className={`relative text-left p-4 sm:p-5 border-2 rounded-2xl transition-all duration-300 active:scale-95 ${selectedService?.id === service.id ? 'border-amber-500 bg-amber-500/10 shadow-lg shadow-amber-500/20' : 'border-slate-700 hover:border-amber-400 hover:bg-slate-800'}`}>
                                                     <div className="text-3xl sm:text-4xl mb-2">✂️</div>
                                                     <h4 className="text-base sm:text-lg font-bold text-white mb-1">{service.name}</h4>
-                                                    <p className="text-xs text-slate-400 mb-3">{service.description}</p>
+                                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                    <p className="text-xs text-slate-300 mb-3">{service.description}</p>
                                                     <div className="flex justify-between items-center">
                                                         <span className="text-xl sm:text-2xl font-bold text-amber-400">R$ {service.price}</span>
-                                                        <span className="text-xs sm:text-sm text-slate-400 flex items-center bg-slate-800 px-2 py-1 rounded-full">
+                                                        {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                        <span className="text-xs sm:text-sm text-slate-300 flex items-center bg-slate-800 px-2 py-1 rounded-full">
                                                             <Clock className="h-3 w-3 mr-1" />
                                                             {service.duration_minutes} min
                                                         </span>
@@ -1035,22 +1062,27 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                         <div className="bg-gradient-to-br from-slate-800 to-slate-800/50 p-4 sm:p-5 rounded-2xl border border-slate-700 space-y-3">
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
-                                                    <span className="text-xs text-slate-400 uppercase tracking-wide">Serviço Selecionado</span>
+                                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                    <span className="text-xs text-slate-300 uppercase tracking-wide">Serviço Selecionado</span>
                                                     <p className="font-bold text-white text-lg sm:text-xl mt-1">{selectedService?.name}</p>
-                                                    <p className="text-xs text-slate-400 mt-0.5">{selectedService?.description}</p>
+                                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                    <p className="text-xs text-slate-300 mt-0.5">{selectedService?.description}</p>
                                                 </div>
                                                 <div className="text-right">
                                                     <span className="text-2xl sm:text-3xl font-bold text-amber-400">R$ {selectedService?.price}</span>
-                                                    <p className="text-xs text-slate-400 mt-1">{selectedService?.duration_minutes} min</p>
+                                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                    <p className="text-xs text-slate-300 mt-1">{selectedService?.duration_minutes} min</p>
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-700">
                                                 <div>
-                                                    <span className="text-xs text-slate-400">Profissional</span>
+                                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                    <span className="text-xs text-slate-300">Profissional</span>
                                                     <p className="font-semibold text-white text-sm">{selectedProfessional?.full_name}</p>
                                                 </div>
                                                 <div>
-                                                    <span className="text-xs text-slate-400">Data e Hora</span>
+                                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                                    <span className="text-xs text-slate-300">Data e Hora</span>
                                                     <p className="font-semibold text-white text-sm">
                                                         {selectedDate ? new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' }) : ''} às {selectedTime}
                                                     </p>
@@ -1067,7 +1099,8 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                                     value={customerName} 
                                                     onChange={(e) => handleNameChange(e.target.value)}
                                                     onBlur={() => validateName(customerName)}
-                                                    className={`w-full p-3 sm:p-4 bg-slate-800 border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all text-sm sm:text-base ${
+                                                    // [CORREÇÃO 1.4.3] placeholder-slate-500 -> placeholder-slate-400
+                                                    className={`w-full p-3 sm:p-4 bg-slate-800 border-2 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all text-sm sm:text-base ${
                                                         nameError 
                                                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
                                                             : 'border-slate-700 focus:border-amber-500 focus:ring-amber-500/20'
@@ -1089,7 +1122,8 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                                                     onChange={(e) => handlePhoneChange(e.target.value)}
                                                     onBlur={() => validatePhone(customerPhone)}
                                                     maxLength={15}
-                                                    className={`w-full p-3 sm:p-4 bg-slate-800 border-2 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:ring-2 transition-all text-sm sm:text-base ${
+                                                    // [CORREÇÃO 1.4.3] placeholder-slate-500 -> placeholder-slate-400
+                                                    className={`w-full p-3 sm:p-4 bg-slate-800 border-2 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:ring-2 transition-all text-sm sm:text-base ${
                                                         phoneError 
                                                             ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' 
                                                             : 'border-slate-700 focus:border-amber-500 focus:ring-amber-500/20'
@@ -1119,7 +1153,8 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
 
                 <div className="border-t border-slate-700 p-4 sm:p-5 bg-slate-900/95 backdrop-blur flex-shrink-0">
                     <div className="flex gap-3">
-                        <button onClick={() => step > 1 ? setStep(step - 1) : resetAndClose()} className="flex-1 sm:flex-none sm:px-6 py-3 border-2 border-slate-600 text-slate-300 rounded-xl hover:border-amber-500 hover:text-amber-400 transition-all duration-300 font-semibold text-sm sm:text-base active:scale-95">
+                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                        <button onClick={() => step > 1 ? setStep(step - 1) : resetAndClose()} className="flex-1 sm:flex-none sm:px-6 py-3 border-2 border-slate-600 text-slate-200 rounded-xl hover:border-amber-500 hover:text-amber-400 transition-all duration-300 font-semibold text-sm sm:text-base active:scale-95">
                             {step === 1 ? 'Cancelar' : 'Voltar'}
                         </button>
                         {step === 3 ? (
@@ -1132,7 +1167,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                             </button>
                         ) : (
                             <button onClick={() => { if (step === 1 && selectedService) setStep(2); if (step === 2 && selectedProfessional && selectedDate && selectedTime) setStep(3); }} disabled={(step === 1 && !selectedService) || (step === 2 && (!selectedProfessional || !selectedDate || !selectedTime))} className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-95">
-                                Continuar <ChevronRight className="h-5 w-5 ml-1" />
+                                Próxima etapa <ChevronRight className="h-5 w-5 ml-1" />
                             </button>
                         )}
                     </div>

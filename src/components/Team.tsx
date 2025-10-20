@@ -13,7 +13,6 @@ export const Team = () => {
     const [topServices, setTopServices] = useState<TopService[]>([]);
     const [loadingServices, setLoadingServices] = useState(true);
 
-    // Dados do profissional
     const barber = {
         name: "David Sousa",
         role: "Fundador & Barbeiro Master",
@@ -57,12 +56,10 @@ export const Team = () => {
         }
     ];
 
-    // Busca os 3 serviços mais pedidos do banco com informação do cliente VIP
     const fetchTopServices = async () => {
         try {
             setLoadingServices(true);
 
-            // Busca todos os agendamentos concluídos ou agendados
             const { data: appointments, error: appointmentsError } = await supabase
                 .from('appointments')
                 .select('service_type, client_id')
@@ -70,7 +67,6 @@ export const Team = () => {
 
             if (appointmentsError) {
                 console.warn('⚠️ Erro ao buscar serviços:', appointmentsError);
-                // Usa dados mockados em caso de erro
                 setTopServices([
                     { service_type: "Corte Clássico", booking_count: 156, top_client_name: "Carlos Silva", top_client_bookings: 12 },
                     { service_type: "Barba Completa", booking_count: 98, top_client_name: "João Santos", top_client_bookings: 8 },
@@ -81,14 +77,12 @@ export const Team = () => {
             }
 
             if (appointments && appointments.length > 0) {
-                // Buscar dados dos clientes
                 const { data: clients, error: clientsError } = await supabase
                     .from('clients')
                     .select('id, name');
 
                 const clientsMap = new Map((clients || []).map(c => [c.id, c.name]));
 
-                // Agrupa por tipo de serviço e conta clientes
                 const serviceStats = appointments.reduce((acc: any, apt) => {
                     const serviceName = apt.service_type;
                     if (!acc[serviceName]) {
@@ -100,16 +94,13 @@ export const Team = () => {
                     }
                     acc[serviceName].booking_count += 1;
                     
-                    // Conta quantas vezes cada cliente agendou este serviço
                     const clientBookings = acc[serviceName].clients.get(apt.client_id) || 0;
                     acc[serviceName].clients.set(apt.client_id, clientBookings + 1);
                     
                     return acc;
                 }, {});
 
-                // Converte para array e encontra o cliente VIP de cada serviço
                 const servicesArray = Object.values(serviceStats).map((service: any) => {
-                    // Encontra o cliente que mais agendou este serviço
                     let topClientId = null;
                     let maxBookings = 0;
                     
@@ -128,14 +119,12 @@ export const Team = () => {
                     };
                 });
 
-                // Ordena por quantidade de agendamentos e pega top 3
                 const top3 = servicesArray
                     .sort((a: any, b: any) => b.booking_count - a.booking_count)
                     .slice(0, 3);
 
                 setTopServices(top3);
             } else {
-                // Se não houver dados, usa mock
                 setTopServices([
                     { service_type: "Corte Clássico", booking_count: 156, top_client_name: "Carlos Silva", top_client_bookings: 12 },
                     { service_type: "Barba Completa", booking_count: 98, top_client_name: "João Santos", top_client_bookings: 8 },
@@ -146,7 +135,6 @@ export const Team = () => {
             setLoadingServices(false);
         } catch (err) {
             console.error("Erro ao processar serviços:", err);
-            // Fallback para dados mockados
             setTopServices([
                 { service_type: "Corte Clássico", booking_count: 156, top_client_name: "Carlos Silva", top_client_bookings: 12 },
                 { service_type: "Barba Completa", booking_count: 98, top_client_name: "João Santos", top_client_bookings: 8 },
@@ -159,7 +147,6 @@ export const Team = () => {
     useEffect(() => {
         fetchTopServices();
 
-        // Atualiza a cada 2 minutos
         const interval = setInterval(() => {
             fetchTopServices();
         }, 120000);
@@ -167,7 +154,6 @@ export const Team = () => {
         return () => clearInterval(interval);
     }, []);
 
-    // Mapeia ícones para cada tipo de serviço
     const getServiceIcon = (serviceName: string) => {
         const name = serviceName.toLowerCase();
         if (name.includes('corte') && name.includes('barba')) return Zap;
@@ -176,7 +162,6 @@ export const Team = () => {
         return Scissors;
     };
 
-    // Define badges baseado na posição
     const getBadge = (index: number) => {
         if (index === 0) return { 
             text: "🥇 Top 1", 
@@ -216,7 +201,7 @@ export const Team = () => {
                     <h2 className="text-4xl md:text-5xl font-bold mb-4">
                         Conheça o <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">Profissional</span>
                     </h2>
-                    <p className="text-xl text-slate-300 max-w-2xl mx-auto">
+                    <p className="text-xl text-slate-200 max-w-2xl mx-auto">
                         Experiência, paixão e dedicação em cada atendimento
                     </p>
                 </div>
@@ -230,7 +215,7 @@ export const Team = () => {
                                 <div className="relative h-[400px] md:h-auto">
                                     <img
                                         src={barber.image}
-                                        alt={barber.name}
+                                        alt={`Foto de ${barber.name}, ${barber.role}`}
                                         className="w-full h-full object-cover"
                                     />
                                     <div className="absolute top-4 right-4">
@@ -250,7 +235,8 @@ export const Team = () => {
                                         <p className="text-amber-400 font-semibold text-lg mb-2">
                                             {barber.role}
                                         </p>
-                                        <div className="flex items-center space-x-4 text-sm text-slate-400">
+                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                        <div className="flex items-center space-x-4 text-sm text-slate-200">
                                             <span className="flex items-center">
                                                 <Clock className="h-4 w-4 mr-1" />
                                                 {barber.experience} anos
@@ -264,20 +250,22 @@ export const Team = () => {
 
                                     {/* Rating */}
                                     <div className="flex items-center mb-6 pb-6 border-b border-slate-700">
-                                        <div className="flex mr-2">
+                                        <div className="flex mr-2" aria-label={`Avaliação ${barber.rating} de 5 estrelas`}>
                                             {[...Array(5)].map((_, i) => (
                                                 <Star
                                                     key={i}
                                                     className="h-5 w-5 text-amber-400 fill-amber-400"
+                                                    aria-hidden="true"
                                                 />
                                             ))}
                                         </div>
                                         <span className="text-white font-bold text-lg">{barber.rating}</span>
-                                        <span className="text-slate-400 ml-2">({barber.reviewCount} avaliações)</span>
+                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                        <span className="text-slate-200 ml-2">({barber.reviewCount} avaliações)</span>
                                     </div>
 
                                     {/* Bio */}
-                                    <p className="text-slate-300 leading-relaxed mb-6">
+                                    <p className="text-slate-200 leading-relaxed mb-6">
                                         {barber.bio}
                                     </p>
 
@@ -301,10 +289,11 @@ export const Team = () => {
                                         <TrendingUp className="h-6 w-6 text-white" />
                                     </div>
                                     <div>
-                                        <h4 className="text-2xl font-bold text-white">
+                                        <h3 className="text-2xl font-bold text-white">
                                             Serviços Mais Populares
-                                        </h4>
-                                        <p className="text-sm text-slate-400">Os favoritos dos nossos clientes</p>
+                                        </h3>
+                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                        <p className="text-sm text-slate-200">Os favoritos dos nossos clientes</p>
                                     </div>
                                 </div>
                                 {!loadingServices && (
@@ -330,44 +319,40 @@ export const Team = () => {
                                                 key={index} 
                                                 className={`relative bg-gradient-to-br from-slate-700/50 to-slate-700/30 rounded-2xl p-5 transition-all duration-300 border-2 border-slate-600/50 ${badge.hoverBorder} group overflow-hidden`}
                                             >
-                                                {/* Badge de Ranking - POSICIONAMENTO PROFISSIONAL */}
                                                 <div className="absolute top-4 right-4">
                                                     <span className={`px-3 py-1.5 ${badge.color} rounded-full text-xs font-bold border-2 shadow-lg whitespace-nowrap`}>
                                                         {badge.text}
                                                     </span>
                                                 </div>
 
-                                                {/* Ícone do Serviço */}
                                                 <div className="mb-4">
                                                     <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 p-3 rounded-xl group-hover:scale-110 transition-transform shadow-md w-fit">
                                                         <ServiceIcon className="h-7 w-7 text-amber-400" />
                                                     </div>
                                                 </div>
 
-                                                {/* Nome do Serviço */}
-                                                <h5 className="font-bold text-white text-lg mb-4 leading-tight pr-24">
+                                                <h4 className="font-bold text-white text-lg mb-4 leading-tight pr-24">
                                                     {service.service_type}
-                                                </h5>
+                                                </h4>
 
-                                                {/* Estatísticas */}
                                                 <div className="space-y-3">
-                                                    {/* Total de Reservas */}
                                                     <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-700">
                                                         <div className="flex items-center space-x-2">
                                                             <ThumbsUp className="h-4 w-4 text-amber-400" />
-                                                            <span className="text-sm text-slate-300">Total de Reservas</span>
+                                                            {/* [CORREÇÃO 1.4.3] text-slate-200 -> text-slate-200 (OK) */}
+                                                            <span className="text-sm text-slate-200">Total de Reservas</span>
                                                         </div>
                                                         <span className="text-2xl font-bold text-amber-400">
                                                             {service.booking_count}
                                                         </span>
                                                     </div>
 
-                                                    {/* Cliente Fidelizado */}
                                                     {service.top_client_name && (
                                                         <div className="p-3 bg-slate-900/70 rounded-xl border border-slate-600/50">
                                                             <div className="flex items-center space-x-2 mb-1.5">
                                                                 <Crown className="h-4 w-4 text-amber-400" />
-                                                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                                                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                                                <span className="text-xs font-semibold text-slate-200 uppercase tracking-wide">
                                                                     Cliente Leal
                                                                 </span>
                                                             </div>
@@ -383,7 +368,6 @@ export const Team = () => {
                                                     )}
                                                 </div>
 
-                                                {/* Efeito de hover decorativo */}
                                                 <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl"></div>
                                             </div>
                                         );
@@ -391,7 +375,8 @@ export const Team = () => {
                                 </div>
                             )}
 
-                            <div className="mt-6 pt-6 border-t border-slate-700 flex items-center justify-center space-x-2 text-xs text-slate-400">
+                            {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                            <div className="mt-6 pt-6 border-t border-slate-700 flex items-center justify-center space-x-2 text-xs text-slate-200">
                                 <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                                     <span>📊 Dados baseados em agendamentos confirmados e concluídos</span>
@@ -404,10 +389,10 @@ export const Team = () => {
                     <div className="space-y-8">
                         {/* Achievements */}
                         <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6">
-                            <h4 className="text-xl font-bold text-white mb-4 flex items-center">
+                            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
                                 <Award className="h-5 w-5 text-amber-400 mr-2" />
                                 Conquistas
-                            </h4>
+                            </h3>
                             <div className="space-y-4">
                                 {barber.achievements.map((achievement, index) => (
                                     <div key={index} className="flex items-start space-x-3 p-3 bg-slate-700/50 rounded-lg hover:bg-slate-700 transition-colors">
@@ -415,8 +400,9 @@ export const Team = () => {
                                             <achievement.icon className="h-5 w-5 text-amber-400" />
                                         </div>
                                         <div>
-                                            <h5 className="font-bold text-white text-sm">{achievement.title}</h5>
-                                            <p className="text-xs text-slate-400">{achievement.description}</p>
+                                            <h4 className="font-bold text-white text-sm">{achievement.title}</h4>
+                                            {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                                            <p className="text-xs text-slate-200">{achievement.description}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -425,15 +411,15 @@ export const Team = () => {
 
                         {/* Certifications */}
                         <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-6">
-                            <h4 className="text-xl font-bold text-white mb-4 flex items-center">
+                            <h3 className="text-xl font-bold text-white mb-4 flex items-center">
                                 <Trophy className="h-5 w-5 text-amber-400 mr-2" />
                                 Certificações
-                            </h4>
+                            </h3>
                             <ul className="space-y-3">
                                 {barber.certifications.map((cert, index) => (
                                     <li key={index} className="flex items-start text-sm">
                                         <span className="text-amber-400 mr-2">✓</span>
-                                        <span className="text-slate-300">{cert}</span>
+                                        <span className="text-slate-200">{cert}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -442,7 +428,8 @@ export const Team = () => {
                         {/* Quick CTA */}
                         <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center shadow-xl shadow-amber-500/20">
                             <div className="text-4xl mb-3">⚡</div>
-                            <h4 className="font-bold text-lg mb-2">Vagas Limitadas!</h4>
+                            <h3 className="font-bold text-lg mb-2">Vagas Limitadas!</h3>
+                            {/* [CORREÇÃO 1.4.3] text-white/90 (OK) */}
                             <p className="text-sm mb-4 text-white/90">Agende agora e garanta seu horário</p>
                             <button
                                 onClick={openBooking}
@@ -463,14 +450,15 @@ export const Team = () => {
                         {testimonials.map((testimonial, index) => (
                             <div key={index} className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-amber-500 transition-all duration-300">
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="flex">
+                                    <div className="flex" aria-label={`Avaliação ${testimonial.rating} estrelas`}>
                                         {[...Array(testimonial.rating)].map((_, i) => (
-                                            <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" />
+                                            <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" aria-hidden="true" />
                                         ))}
                                     </div>
-                                    <span className="text-xs text-slate-500">{testimonial.date}</span>
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                    <span className="text-xs text-slate-300">{testimonial.date}</span>
                                 </div>
-                                <p className="text-slate-300 mb-4 italic">"{testimonial.comment}"</p>
+                                <p className="text-slate-200 mb-4 italic">"{testimonial.comment}"</p>
                                 <p className="text-white font-semibold">— {testimonial.name}</p>
                             </div>
                         ))}

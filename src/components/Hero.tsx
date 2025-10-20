@@ -23,7 +23,6 @@ export const Hero = () => {
   const [professionalStatus, setProfessionalStatus] = useState<'available' | 'busy' | 'offline'>('available');
   const [loading, setLoading] = useState(true);
 
-  // Horários de funcionamento
   const businessHours = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
 
   const fetchLiveData = async () => {
@@ -32,7 +31,6 @@ export const Hero = () => {
       const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
       const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-      // Busca agendamento em andamento
       const { data: inProgressData, error: inProgressError } = await supabase
         .from('appointments')
         .select(`
@@ -51,7 +49,6 @@ export const Hero = () => {
         .limit(1)
         .maybeSingle();
 
-      // Trata erro de permissão (406)
       if (inProgressError && (inProgressError.code === 'PGRST116' || inProgressError.message.includes('406'))) {
         console.warn('⚠️ Sem permissão para consultar agendamentos. Hero funcionará sem dados ao vivo.');
         setCurrentAppointment(null);
@@ -71,7 +68,6 @@ export const Hero = () => {
         });
         setProfessionalStatus('busy');
       } else {
-        // Se não há atendimento em andamento, busca o próximo agendado
         const { data: scheduledData, error: scheduledError } = await supabase
           .from('appointments')
           .select(`
@@ -90,7 +86,6 @@ export const Hero = () => {
           .limit(1)
           .maybeSingle();
 
-        // Trata erro de permissão
         if (scheduledError && (scheduledError.code === 'PGRST116' || scheduledError.message.includes('406'))) {
           console.warn('⚠️ Sem permissão para consultar agendamentos.');
           setCurrentAppointment(null);
@@ -115,7 +110,6 @@ export const Hero = () => {
         }
       }
 
-      // Busca todos os agendamentos de hoje para horários disponíveis
       const { data: allAppointments, error: allError } = await supabase
         .from('appointments')
         .select('scheduled_date')
@@ -123,7 +117,6 @@ export const Hero = () => {
         .lte('scheduled_date', todayEnd.toISOString())
         .in('status', ['scheduled', 'in_progress']);
 
-      // Se houver erro de permissão, define horário padrão
       if (allError && (allError.code === 'PGRST116' || allError.message.includes('406'))) {
         setNextAvailableSlot({ time: "09:00", available: true });
         setLoading(false);
@@ -131,7 +124,6 @@ export const Hero = () => {
       }
 
       if (allAppointments) {
-        // Extrai os horários ocupados
         const occupiedTimes = allAppointments.map(apt => {
           const date = new Date(apt.scheduled_date);
           const hours = date.getHours().toString().padStart(2, '0');
@@ -139,7 +131,6 @@ export const Hero = () => {
           return `${hours}:${minutes}`;
         });
 
-        // Encontra o próximo horário disponível
         const currentHour = now.getHours();
         const currentMinute = now.getMinutes();
         const currentTimeInMinutes = currentHour * 60 + currentMinute;
@@ -161,7 +152,6 @@ export const Hero = () => {
       setLoading(false);
     } catch (err) {
       console.error("Erro ao buscar dados ao vivo:", err);
-      // Define valores padrão em caso de erro
       setCurrentAppointment(null);
       setProfessionalStatus('available');
       setNextAvailableSlot({ time: "09:00", available: true });
@@ -172,7 +162,6 @@ export const Hero = () => {
   useEffect(() => {
     fetchLiveData();
 
-    // Atualiza a cada 30 segundos
     const interval = setInterval(() => {
       fetchLiveData();
     }, 30000);
@@ -199,12 +188,10 @@ export const Hero = () => {
     const diff = scheduledDate.getTime() - now.getTime();
     
     if (diff < 0) {
-      // Atendimento em andamento - calcular tempo decorrido
       const elapsed = Math.abs(diff);
       const minutesElapsed = Math.floor(elapsed / 60000);
       return `Em andamento • ${minutesElapsed} min`;
     } else {
-      // Atendimento agendado - calcular tempo até começar
       const minutesUntil = Math.floor(diff / 60000);
       if (minutesUntil < 60) {
         return `Começa em ${minutesUntil} min`;
@@ -216,9 +203,10 @@ export const Hero = () => {
   };
 
   return (
-    <section id="home" className="relative min-h-screen flex items-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    // [CORREÇÃO 2.4.1] Adicionado id="main-content" para o link "Pular para o conteúdo"
+    <section id="main-content" className="relative min-h-screen flex items-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Background Pattern */}
-      <div className="absolute inset-0 z-0 opacity-10">
+      <div className="absolute inset-0 z-0 opacity-10" aria-hidden="true">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}></div>
@@ -230,29 +218,30 @@ export const Hero = () => {
           {/* Left Column - Text Content */}
           <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center space-x-2">
-              <div className="flex">
+              <div className="flex" aria-label="Avaliação 5 estrelas">
                 {[...Array(5)].map((_, i) => (
                   <Star
                     key={i}
                     className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 fill-amber-400"
+                    aria-hidden="true"
                   />
                 ))}
               </div>
-              <span className="text-slate-300 font-medium text-sm sm:text-base">
+              <span className="text-slate-200 font-semibold text-sm sm:text-base">
                 4.9/5 • 500+ clientes satisfeitos
               </span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
+            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
               Estilo{" "}
               <span className="bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
                 Premium
               </span>
               <br />
               <span className="text-white">para Homens</span>
-            </h1>
+            </h2>
 
-            <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-lg">
+            <p className="text-lg sm:text-xl text-slate-200 leading-relaxed max-w-lg">
               Transforme seu visual com nosso barbeiro especializado. 
               Agende em <strong className="text-amber-400">3 cliques</strong> e 
               experimente o melhor da barbearia moderna.
@@ -270,7 +259,7 @@ export const Hero = () => {
                   <div className="bg-amber-500/20 p-2 rounded-lg group-hover:bg-amber-500/30 transition-colors">
                     <benefit.icon className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400" />
                   </div>
-                  <span className="text-white font-medium text-sm sm:text-base">
+                  <span className="text-slate-100 font-semibold text-sm sm:text-base">
                     {benefit.text}
                   </span>
                 </div>
@@ -298,15 +287,18 @@ export const Hero = () => {
             <div className="flex items-center justify-around sm:justify-start sm:space-x-8 pt-6 sm:pt-8 border-t border-slate-700">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400">500+</div>
-                <div className="text-xs sm:text-sm text-slate-400">Clientes</div>
+                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                <div className="text-xs sm:text-sm text-slate-200">Clientes</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400">8</div>
-                <div className="text-xs sm:text-sm text-slate-400">Anos</div>
+                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                <div className="text-xs sm:text-sm text-slate-200">Anos</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400">98%</div>
-                <div className="text-xs sm:text-sm text-slate-400">Satisfação</div>
+                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                <div className="text-xs sm:text-sm text-slate-200">Satisfação</div>
               </div>
             </div>
           </div>
@@ -334,7 +326,6 @@ export const Hero = () => {
                 <div className="space-y-3 sm:space-y-4">
                   {currentAppointment ? (
                     <>
-                      {/* Status do Atendimento */}
                       {currentAppointment.status === 'in_progress' && (
                         <div className="p-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-xl">
                           <div className="flex items-center space-x-2">
@@ -348,7 +339,8 @@ export const Hero = () => {
 
                       <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="text-xs sm:text-sm text-slate-400">
+                          {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                          <div className="text-xs sm:text-sm text-slate-200">
                             {currentAppointment.status === 'in_progress' ? 'Serviço em Andamento' : 'Próximo Serviço'}
                           </div>
                           {currentAppointment.status === 'scheduled' && (
@@ -362,7 +354,8 @@ export const Hero = () => {
                       </div>
                       
                       <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                        <div className="text-xs sm:text-sm text-slate-400 mb-1">Profissional</div>
+                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                        <div className="text-xs sm:text-sm text-slate-200 mb-1">Profissional</div>
                         <div className="flex items-center justify-between">
                           <div className="font-bold text-white text-sm sm:text-base">{currentAppointment.professional.full_name}</div>
                           {professionalStatus === 'busy' ? (
@@ -383,11 +376,11 @@ export const Hero = () => {
                     <div className="p-4 bg-slate-700/30 rounded-xl border border-slate-600 text-center">
                       <UserCheck className="h-12 w-12 mx-auto mb-3 text-green-400" />
                       <p className="text-white font-bold mb-1">Profissional Disponível</p>
-                      <p className="text-sm text-slate-400">Nenhum atendimento agendado no momento</p>
+                      {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
+                      <p className="text-sm text-slate-200">Nenhum atendimento agendado no momento</p>
                     </div>
                   )}
                   
-                  {/* Próximo Horário Disponível */}
                   {nextAvailableSlot && (
                     <div className="p-3 sm:p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30">
                       <div className="text-xs sm:text-sm text-green-400 mb-1 font-bold">Próximo Horário Livre</div>
@@ -406,7 +399,8 @@ export const Hero = () => {
                     Reservar Horário
                   </button>
 
-                  <p className="text-xs text-slate-500 text-center">
+                  {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                  <p className="text-xs text-slate-300 text-center">
                     🔒 Agendamento seguro e rápido • Atualizado em tempo real
                   </p>
                 </div>
@@ -416,7 +410,6 @@ export const Hero = () => {
         </div>
       </div>
 
-      {/* Floating Elements */}
       {nextAvailableSlot && (
         <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
           <div className="bg-amber-500 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
