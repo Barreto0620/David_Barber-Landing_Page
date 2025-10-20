@@ -953,7 +953,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
     );
 
     return (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4">
             <div className="bg-slate-900 rounded-t-3xl sm:rounded-2xl shadow-2xl w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[95vh] sm:max-h-[92vh] overflow-hidden border-t-4 sm:border-t-0 sm:border border-amber-500 sm:border-slate-700 flex flex-col">
                 
                 <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4 sm:p-5 md:p-6 text-white flex-shrink-0">
