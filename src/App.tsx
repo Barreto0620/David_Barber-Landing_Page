@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import AdminDashboard from "./pages/admin/Dashboard";
 import ClientDashboard from "./pages/client/Dashboard";
+import { CookieConsent } from "./components/CookieConsent"; // Importação Correta
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,12 +37,13 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/client/dashboard" element={<ClientDashboard />} />
-            {/* Catch-all route - deve ser sempre a última */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
+    <CookieConsent /> 
+    
   </QueryClientProvider>
 );
 
