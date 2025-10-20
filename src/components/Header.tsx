@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "../lib/supabaseClient";
-import { Menu, X, Calendar, Phone, User, LogOut, ChevronRight, Check, Clock, Star, AlertCircle } from "lucide-react";
+import { Menu, X, Calendar, Phone, User, LogOut, ChevronRight, Check, Clock, Star, AlertCircle, Trophy, TrendingUp, Award } from "lucide-react";
 
 // ====================================================================================
 // ESTILOS GLOBAIS PARA SCROLLBAR
@@ -52,6 +52,15 @@ const GlobalScrollbarStyles = () => {
                 animation: bounce-in-down 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
             }
 
+            @keyframes pulse-glow {
+                0%, 100% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.4); }
+                50% { box-shadow: 0 0 30px rgba(245, 158, 11, 0.6); }
+            }
+
+            .animate-pulse-glow {
+                animation: pulse-glow 2s ease-in-out infinite;
+            }
+
             html {
                 scroll-behavior: smooth;
             }
@@ -92,6 +101,8 @@ interface Appointment {
     professional_id: string;
     scheduled_date: string;
     status: string;
+    service_type: string;
+    client_id: string;
 }
 
 // ====================================================================================
@@ -453,7 +464,7 @@ const DateSelector = ({ selectedDate, setSelectedDate }: DateSelectorProps) => {
 };
 
 // ====================================================================================
-// COMPONENTE: TIME SELECTOR (CORRIGIDO COM FUSO HORÁRIO)
+// COMPONENTE: TIME SELECTOR (CORRIGIDO - BLOQUEIO CORRETO DE SLOTS)
 // ====================================================================================
 
 interface TimeSelectorProps {
@@ -481,7 +492,6 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
             try {
                 const [year, month, day] = selectedDate.split('-').map(Number);
                 
-                // Criar datas em horário local (Brasília)
                 const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
                 const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
 
@@ -503,16 +513,41 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
                     return;
                 }
 
-                const occupied = (data || []).map((appointment: Appointment) => {
-                    // Converter UTC para horário local
+                // Buscar duração dos serviços
+                const { data: servicesData } = await supabase
+                    .from('services')
+                    .select('name, duration_minutes');
+
+                const servicesDurationMap = new Map(
+                    (servicesData || []).map(s => [s.name, s.duration_minutes])
+                );
+
+                // Calcular TODOS os slots ocupados considerando a duração
+                const allOccupiedSlots = new Set<string>();
+
+                (data || []).forEach((appointment: any) => {
                     const utcDate = new Date(appointment.scheduled_date);
-                    const localDate = new Date(utcDate.getTime());
-                    const hours = localDate.getHours().toString().padStart(2, '0');
-                    const minutes = localDate.getMinutes().toString().padStart(2, '0');
-                    return `${hours}:${minutes}`;
+                    const startHours = utcDate.getHours();
+                    const startMinutes = utcDate.getMinutes();
+                    
+                    // Pegar duração do serviço
+                    const serviceDuration = servicesDurationMap.get(appointment.service_type) || 30;
+                    
+                    // Marcar slot inicial
+                    const startTime = `${startHours.toString().padStart(2, '0')}:${startMinutes.toString().padStart(2, '0')}`;
+                    allOccupiedSlots.add(startTime);
+                    
+                    // Marcar todos os slots seguintes necessários
+                    for (let offset = 30; offset < serviceDuration; offset += 30) {
+                        const totalMinutes = startHours * 60 + startMinutes + offset;
+                        const hours = Math.floor(totalMinutes / 60);
+                        const minutes = totalMinutes % 60;
+                        const timeSlot = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+                        allOccupiedSlots.add(timeSlot);
+                    }
                 });
 
-                setOccupiedTimes(occupied);
+                setOccupiedTimes(Array.from(allOccupiedSlots));
             } catch (err) {
                 setOccupiedTimes([]);
             } finally {
@@ -523,7 +558,6 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
         fetchOccupiedTimes();
     }, [selectedDate, selectedProfessional]);
 
-    // FUNÇÃO CORRIGIDA: Verifica se o horário já passou considerando data E hora
     const isTimePassed = (time: string): boolean => {
         if (!selectedDate) return false;
         
@@ -531,10 +565,7 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
         const [year, month, day] = selectedDate.split('-').map(Number);
         const [hours, minutes] = time.split(':').map(Number);
         
-        // Criar data/hora selecionada em horário local
         const selectedDateTime = new Date(year, month - 1, day, hours, minutes, 0);
-        
-        // Adicionar margem de segurança de 30 minutos
         const nowPlus30Min = new Date(now.getTime() + 30 * 60 * 1000);
         
         return selectedDateTime <= nowPlus30Min;
@@ -546,23 +577,29 @@ const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedPro
         const serviceDuration = selectedService.duration_minutes;
         
         return allTimes.filter(time => {
-            // Verifica se o horário já passou
             if (isTimePassed(time)) return false;
-            
-            // Verifica se está ocupado
             if (occupiedTimes.includes(time)) return false;
 
-            // Verifica slots necessários para o serviço
+            // Verificar se TODOS os slots necessários estão livres
             const [hours, minutes] = time.split(':').map(Number);
             const timeInMinutes = hours * 60 + minutes;
 
+            // Verificar cada slot de 30 em 30 minutos até completar a duração
             for (let offset = 30; offset < serviceDuration; offset += 30) {
                 const nextTimeInMinutes = timeInMinutes + offset;
                 const nextHours = Math.floor(nextTimeInMinutes / 60);
                 const nextMinutes = nextTimeInMinutes % 60;
                 const nextTime = `${nextHours.toString().padStart(2, '0')}:${nextMinutes.toString().padStart(2, '0')}`;
                 
-                if (occupiedTimes.includes(nextTime)) return false;
+                // Se o próximo slot estiver ocupado, este horário não está disponível
+                if (occupiedTimes.includes(nextTime)) {
+                    return false;
+                }
+                
+                // Se o próximo slot não existir na lista (após 18:00), também não está disponível
+                if (!allTimes.includes(nextTime)) {
+                    return false;
+                }
             }
 
             return true;
@@ -794,7 +831,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
             return;
         }
         
-        // Validação de horário passado
         const [year, month, day] = selectedDate.split('-').map(Number);
         const [hours, minutes] = selectedTime.split(':').map(Number);
         const selectedDateTime = new Date(year, month - 1, day, hours, minutes, 0);
@@ -842,7 +878,6 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
               client_id = newClient.id;
             }
 
-            // Criar data/hora em horário local e converter para UTC
             const localDateTime = new Date(year, month - 1, day, hours, minutes, 0);
             
             const appointmentData = {
@@ -1097,7 +1132,7 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: { isOpen: b
                             </button>
                         ) : (
                             <button onClick={() => { if (step === 1 && selectedService) setStep(2); if (step === 2 && selectedProfessional && selectedDate && selectedTime) setStep(3); }} disabled={(step === 1 && !selectedService) || (step === 2 && (!selectedProfessional || !selectedDate || !selectedTime))} className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center active:scale-95">
-                                Continuar para a próxima etapa <ChevronRight className="h-5 w-5 ml-1" />
+                                Continuar <ChevronRight className="h-5 w-5 ml-1" />
                             </button>
                         )}
                     </div>

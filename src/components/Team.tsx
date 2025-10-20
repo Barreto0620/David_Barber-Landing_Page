@@ -1,21 +1,19 @@
-// src/components/Team.tsx
-
 import { useState, useEffect } from "react";
-import { Star, Award, Clock, TrendingUp, Scissors, Users, Heart, Target, Sparkles, Trophy, Calendar, Flame, Crown, Zap } from "lucide-react";
+import { Star, Award, Clock, TrendingUp, Scissors, Users, Trophy, Calendar, Flame, Crown, Zap, ThumbsUp } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 interface TopService {
     service_type: string;
     booking_count: number;
-    total_revenue: number;
-    avg_price: number;
+    top_client_name: string | null;
+    top_client_bookings: number;
 }
 
 export const Team = () => {
     const [topServices, setTopServices] = useState<TopService[]>([]);
     const [loadingServices, setLoadingServices] = useState(true);
 
-    // Dados do profissional - virá do Supabase
+    // Dados do profissional
     const barber = {
         name: "David Sousa",
         role: "Fundador & Barbeiro Master",
@@ -59,54 +57,76 @@ export const Team = () => {
         }
     ];
 
-    // Busca os 3 serviços mais pedidos do banco
+    // Busca os 3 serviços mais pedidos do banco com informação do cliente VIP
     const fetchTopServices = async () => {
         try {
             setLoadingServices(true);
 
             // Busca todos os agendamentos concluídos ou agendados
-            const { data: appointments, error } = await supabase
+            const { data: appointments, error: appointmentsError } = await supabase
                 .from('appointments')
-                .select('service_type, price')
+                .select('service_type, client_id')
                 .in('status', ['completed', 'scheduled', 'in_progress']);
 
-            if (error) {
-                console.warn('⚠️ Erro ao buscar serviços:', error);
+            if (appointmentsError) {
+                console.warn('⚠️ Erro ao buscar serviços:', appointmentsError);
                 // Usa dados mockados em caso de erro
                 setTopServices([
-                    { service_type: "Corte Clássico", booking_count: 156, total_revenue: 7800, avg_price: 50 },
-                    { service_type: "Barba Completa", booking_count: 98, total_revenue: 4410, avg_price: 45 },
-                    { service_type: "Corte + Barba", booking_count: 87, total_revenue: 6960, avg_price: 80 }
+                    { service_type: "Corte Clássico", booking_count: 156, top_client_name: "Carlos Silva", top_client_bookings: 12 },
+                    { service_type: "Barba Completa", booking_count: 98, top_client_name: "João Santos", top_client_bookings: 8 },
+                    { service_type: "Corte + Barba", booking_count: 87, top_client_name: "Pedro Costa", top_client_bookings: 10 }
                 ]);
                 setLoadingServices(false);
                 return;
             }
 
             if (appointments && appointments.length > 0) {
-                // Agrupa por tipo de serviço
+                // Buscar dados dos clientes
+                const { data: clients, error: clientsError } = await supabase
+                    .from('clients')
+                    .select('id, name');
+
+                const clientsMap = new Map((clients || []).map(c => [c.id, c.name]));
+
+                // Agrupa por tipo de serviço e conta clientes
                 const serviceStats = appointments.reduce((acc: any, apt) => {
                     const serviceName = apt.service_type;
                     if (!acc[serviceName]) {
                         acc[serviceName] = {
                             service_type: serviceName,
                             booking_count: 0,
-                            total_revenue: 0,
-                            prices: []
+                            clients: new Map()
                         };
                     }
                     acc[serviceName].booking_count += 1;
-                    acc[serviceName].total_revenue += apt.price;
-                    acc[serviceName].prices.push(apt.price);
+                    
+                    // Conta quantas vezes cada cliente agendou este serviço
+                    const clientBookings = acc[serviceName].clients.get(apt.client_id) || 0;
+                    acc[serviceName].clients.set(apt.client_id, clientBookings + 1);
+                    
                     return acc;
                 }, {});
 
-                // Converte para array e calcula média de preço
-                const servicesArray = Object.values(serviceStats).map((service: any) => ({
-                    service_type: service.service_type,
-                    booking_count: service.booking_count,
-                    total_revenue: service.total_revenue,
-                    avg_price: service.total_revenue / service.booking_count
-                }));
+                // Converte para array e encontra o cliente VIP de cada serviço
+                const servicesArray = Object.values(serviceStats).map((service: any) => {
+                    // Encontra o cliente que mais agendou este serviço
+                    let topClientId = null;
+                    let maxBookings = 0;
+                    
+                    service.clients.forEach((count: number, clientId: string) => {
+                        if (count > maxBookings) {
+                            maxBookings = count;
+                            topClientId = clientId;
+                        }
+                    });
+
+                    return {
+                        service_type: service.service_type,
+                        booking_count: service.booking_count,
+                        top_client_name: topClientId ? clientsMap.get(topClientId) || null : null,
+                        top_client_bookings: maxBookings
+                    };
+                });
 
                 // Ordena por quantidade de agendamentos e pega top 3
                 const top3 = servicesArray
@@ -117,9 +137,9 @@ export const Team = () => {
             } else {
                 // Se não houver dados, usa mock
                 setTopServices([
-                    { service_type: "Corte Clássico", booking_count: 156, total_revenue: 7800, avg_price: 50 },
-                    { service_type: "Barba Completa", booking_count: 98, total_revenue: 4410, avg_price: 45 },
-                    { service_type: "Corte + Barba", booking_count: 87, total_revenue: 6960, avg_price: 80 }
+                    { service_type: "Corte Clássico", booking_count: 156, top_client_name: "Carlos Silva", top_client_bookings: 12 },
+                    { service_type: "Barba Completa", booking_count: 98, top_client_name: "João Santos", top_client_bookings: 8 },
+                    { service_type: "Corte + Barba", booking_count: 87, top_client_name: "Pedro Costa", top_client_bookings: 10 }
                 ]);
             }
 
@@ -128,9 +148,9 @@ export const Team = () => {
             console.error("Erro ao processar serviços:", err);
             // Fallback para dados mockados
             setTopServices([
-                { service_type: "Corte Clássico", booking_count: 156, total_revenue: 7800, avg_price: 50 },
-                { service_type: "Barba Completa", booking_count: 98, total_revenue: 4410, avg_price: 45 },
-                { service_type: "Corte + Barba", booking_count: 87, total_revenue: 6960, avg_price: 80 }
+                { service_type: "Corte Clássico", booking_count: 156, top_client_name: "Carlos Silva", top_client_bookings: 12 },
+                { service_type: "Barba Completa", booking_count: 98, top_client_name: "João Santos", top_client_bookings: 8 },
+                { service_type: "Corte + Barba", booking_count: 87, top_client_name: "Pedro Costa", top_client_bookings: 10 }
             ]);
             setLoadingServices(false);
         }
@@ -158,14 +178,33 @@ export const Team = () => {
 
     // Define badges baseado na posição
     const getBadge = (index: number) => {
-        if (index === 0) return { text: "🏆 #1 Mais Pedido", color: "bg-amber-500/20 text-amber-400 border-amber-500/30" };
-        if (index === 1) return { text: "🥈 Top 2", color: "bg-slate-500/20 text-slate-300 border-slate-500/30" };
-        if (index === 2) return { text: "🥉 Top 3", color: "bg-orange-500/20 text-orange-400 border-orange-500/30" };
-        return { text: "Popular", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" };
+        if (index === 0) return { 
+            text: "🥇 Top 1", 
+            color: "bg-gradient-to-r from-amber-500/20 to-yellow-500/20 text-amber-400 border-amber-500/40",
+            glow: "shadow-lg shadow-amber-500/20",
+            hoverBorder: "hover:border-amber-400 hover:shadow-amber-400/30"
+        };
+        if (index === 1) return { 
+            text: "🥈 Top 2", 
+            color: "bg-gradient-to-r from-slate-400/20 to-slate-300/20 text-slate-300 border-slate-400/40",
+            glow: "shadow-md shadow-slate-400/10",
+            hoverBorder: "hover:border-slate-400 hover:shadow-slate-400/30"
+        };
+        if (index === 2) return { 
+            text: "🥉 Top 3", 
+            color: "bg-gradient-to-r from-amber-700/20 to-amber-600/20 text-amber-600 border-amber-700/40",
+            glow: "shadow-md shadow-amber-700/10",
+            hoverBorder: "hover:border-amber-700 hover:shadow-amber-700/30"
+        };
+        return { 
+            text: "Popular", 
+            color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+            glow: "",
+            hoverBorder: "hover:border-blue-400"
+        };
     };
 
     const openBooking = () => {
-        // Dispara o evento global 'openBooking' para abrir o modal de agendamento.
         window.dispatchEvent(new CustomEvent('openBooking'));
     };
 
@@ -255,17 +294,24 @@ export const Team = () => {
                         </div>
 
                         {/* Top 3 Most Requested Services */}
-                        <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-8 mt-8">
+                        <div className="bg-gradient-to-br from-slate-800 to-slate-800/50 border-2 border-slate-700 rounded-2xl p-6 sm:p-8 mt-8 shadow-2xl">
                             <div className="flex items-center justify-between mb-6">
-                                <h4 className="text-2xl font-bold text-white flex items-center">
-                                    <TrendingUp className="h-6 w-6 text-amber-400 mr-2" />
-                                    Serviços Mais Procurados
-                                </h4>
+                                <div className="flex items-center space-x-3">
+                                    <div className="p-3 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl shadow-lg">
+                                        <TrendingUp className="h-6 w-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-2xl font-bold text-white">
+                                            Serviços Mais Populares
+                                        </h4>
+                                        <p className="text-sm text-slate-400">Os favoritos dos nossos clientes</p>
+                                    </div>
+                                </div>
                                 {!loadingServices && (
-                                    <span className="text-xs text-green-400 flex items-center">
-                                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                                        Dados em tempo real
-                                    </span>
+                                    <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-full">
+                                        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                                        <span className="text-xs font-medium text-green-400">Tempo real</span>
+                                    </div>
                                 )}
                             </div>
 
@@ -274,7 +320,7 @@ export const Team = () => {
                                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-500 border-t-transparent"></div>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                                     {topServices.map((service, index) => {
                                         const ServiceIcon = getServiceIcon(service.service_type);
                                         const badge = getBadge(index);
@@ -282,56 +328,75 @@ export const Team = () => {
                                         return (
                                             <div 
                                                 key={index} 
-                                                className="relative bg-gradient-to-br from-slate-700/50 to-slate-700/30 rounded-xl p-5 hover:from-slate-700 hover:to-slate-600 transition-all duration-300 border border-slate-600/50 group overflow-hidden flex flex-col"
+                                                className={`relative bg-gradient-to-br from-slate-700/50 to-slate-700/30 rounded-2xl p-5 transition-all duration-300 border-2 border-slate-600/50 ${badge.hoverBorder} group overflow-hidden`}
                                             >
-                                                {/* Badge */}
-                                                <div className="absolute top-3 right-3">
-                                                    <span className={`px-2 py-1 ${badge.color} rounded-full text-xs font-bold border`}>
+                                                {/* Badge de Ranking - POSICIONAMENTO PROFISSIONAL */}
+                                                <div className="absolute top-4 right-4">
+                                                    <span className={`px-3 py-1.5 ${badge.color} rounded-full text-xs font-bold border-2 shadow-lg whitespace-nowrap`}>
                                                         {badge.text}
                                                     </span>
                                                 </div>
 
-                                                {/* Icon */}
-                                                <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 p-3 rounded-lg w-fit mb-4 group-hover:scale-110 transition-transform">
-                                                    <ServiceIcon className="h-7 w-7 text-amber-400" />
-                                                </div>
-
-                                                {/* Content */}
-                                                <div className="flex-1 flex flex-col">
-                                                    <h5 className="font-bold text-white text-lg mb-3 pr-16 min-h-[56px]">{service.service_type}</h5>
-                                                    
-                                                    <div className="space-y-2 mt-auto">
-                                                        {/* Booking Count */}
-                                                        <div className="flex items-center justify-between text-sm">
-                                                            <span className="text-slate-400">Total de Reservas</span>
-                                                            <span className="font-bold text-amber-400">{service.booking_count}</span>
-                                                        </div>
-
-                                                        {/* Average Price */}
-                                                        <div className="flex items-center justify-between text-sm">
-                                                            <span className="text-slate-400">Preço Médio</span>
-                                                            <span className="font-bold text-green-400">R$ {service.avg_price.toFixed(2)}</span>
-                                                        </div>
-
-                                                        {/* Total Revenue */}
-                                                        <div className="flex items-center justify-between text-sm pt-2 border-t border-slate-600">
-                                                            <span className="text-slate-400">Faturamento</span>
-                                                            <span className="font-bold text-white">R$ {service.total_revenue.toFixed(2)}</span>
-                                                        </div>
+                                                {/* Ícone do Serviço */}
+                                                <div className="mb-4">
+                                                    <div className="bg-gradient-to-br from-amber-500/20 to-orange-500/20 p-3 rounded-xl group-hover:scale-110 transition-transform shadow-md w-fit">
+                                                        <ServiceIcon className="h-7 w-7 text-amber-400" />
                                                     </div>
                                                 </div>
 
-                                                {/* Decorative gradient on hover */}
-                                                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                                                {/* Nome do Serviço */}
+                                                <h5 className="font-bold text-white text-lg mb-4 leading-tight pr-24">
+                                                    {service.service_type}
+                                                </h5>
+
+                                                {/* Estatísticas */}
+                                                <div className="space-y-3">
+                                                    {/* Total de Reservas */}
+                                                    <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-700">
+                                                        <div className="flex items-center space-x-2">
+                                                            <ThumbsUp className="h-4 w-4 text-amber-400" />
+                                                            <span className="text-sm text-slate-300">Total de Reservas</span>
+                                                        </div>
+                                                        <span className="text-2xl font-bold text-amber-400">
+                                                            {service.booking_count}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Cliente Fidelizado */}
+                                                    {service.top_client_name && (
+                                                        <div className="p-3 bg-slate-900/70 rounded-xl border border-slate-600/50">
+                                                            <div className="flex items-center space-x-2 mb-1.5">
+                                                                <Crown className="h-4 w-4 text-amber-400" />
+                                                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
+                                                                    Cliente Leal
+                                                                </span>
+                                                            </div>
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-sm font-bold text-white truncate">
+                                                                    {service.top_client_name}
+                                                                </span>
+                                                                <span className="text-xs text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full font-semibold border border-amber-500/20">
+                                                                    {service.top_client_bookings}x
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                {/* Efeito de hover decorativo */}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/5 to-orange-500/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none rounded-2xl"></div>
                                             </div>
                                         );
                                     })}
                                 </div>
                             )}
 
-                            <p className="text-xs text-slate-500 text-center mt-6">
-                                📊 Dados baseados em agendamentos confirmados e concluídos
-                            </p>
+                            <div className="mt-6 pt-6 border-t border-slate-700 flex items-center justify-center space-x-2 text-xs text-slate-400">
+                                <div className="flex items-center space-x-1">
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span>📊 Dados baseados em agendamentos confirmados e concluídos</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -375,7 +440,7 @@ export const Team = () => {
                         </div>
 
                         {/* Quick CTA */}
-                        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center">
+                        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center shadow-xl shadow-amber-500/20">
                             <div className="text-4xl mb-3">⚡</div>
                             <h4 className="font-bold text-lg mb-2">Vagas Limitadas!</h4>
                             <p className="text-sm mb-4 text-white/90">Agende agora e garanta seu horário</p>
