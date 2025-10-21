@@ -190,6 +190,7 @@ export const Team = () => {
     };
 
     const openBooking = () => {
+        // Dispara evento para abrir modal de agendamento (consistente com Services.tsx)
         window.dispatchEvent(new CustomEvent('openBooking'));
     };
 
@@ -215,6 +216,7 @@ export const Team = () => {
                                 <div className="relative h-[400px] md:h-auto">
                                     <img
                                         src={barber.image}
+                                        // Acessibilidade: Alt text descritivo
                                         alt={`Foto de ${barber.name}, ${barber.role}`}
                                         className="w-full h-full object-cover"
                                     />
@@ -235,7 +237,6 @@ export const Team = () => {
                                         <p className="text-amber-400 font-semibold text-lg mb-2">
                                             {barber.role}
                                         </p>
-                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                         <div className="flex items-center space-x-4 text-sm text-slate-200">
                                             <span className="flex items-center">
                                                 <Clock className="h-4 w-4 mr-1" />
@@ -260,7 +261,6 @@ export const Team = () => {
                                             ))}
                                         </div>
                                         <span className="text-white font-bold text-lg">{barber.rating}</span>
-                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                         <span className="text-slate-200 ml-2">({barber.reviewCount} avaliações)</span>
                                     </div>
 
@@ -269,10 +269,10 @@ export const Team = () => {
                                         {barber.bio}
                                     </p>
 
-                                    {/* CTA Button */}
+                                    {/* CTA Button - Acessibilidade: Adicionado indicador de foco */}
                                     <button
                                         onClick={openBooking}
-                                        className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold flex items-center justify-center text-lg"
+                                        className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold flex items-center justify-center text-lg focus:outline-none focus:ring-4 focus:ring-amber-500/50"
                                     >
                                         <Calendar className="h-5 w-5 mr-2" />
                                         Agendar com {barber.name.split(' ')[0]}
@@ -292,7 +292,6 @@ export const Team = () => {
                                         <h3 className="text-2xl font-bold text-white">
                                             Serviços Mais Populares
                                         </h3>
-                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                         <p className="text-sm text-slate-200">Os favoritos dos nossos clientes</p>
                                     </div>
                                 </div>
@@ -339,7 +338,6 @@ export const Team = () => {
                                                     <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-700">
                                                         <div className="flex items-center space-x-2">
                                                             <ThumbsUp className="h-4 w-4 text-amber-400" />
-                                                            {/* [CORREÇÃO 1.4.3] text-slate-200 -> text-slate-200 (OK) */}
                                                             <span className="text-sm text-slate-200">Total de Reservas</span>
                                                         </div>
                                                         <span className="text-2xl font-bold text-amber-400">
@@ -351,7 +349,6 @@ export const Team = () => {
                                                         <div className="p-3 bg-slate-900/70 rounded-xl border border-slate-600/50">
                                                             <div className="flex items-center space-x-2 mb-1.5">
                                                                 <Crown className="h-4 w-4 text-amber-400" />
-                                                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                                                 <span className="text-xs font-semibold text-slate-200 uppercase tracking-wide">
                                                                     Cliente Leal
                                                                 </span>
@@ -375,7 +372,6 @@ export const Team = () => {
                                 </div>
                             )}
 
-                            {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                             <div className="mt-6 pt-6 border-t border-slate-700 flex items-center justify-center space-x-2 text-xs text-slate-200">
                                 <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -401,7 +397,6 @@ export const Team = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{achievement.title}</h4>
-                                            {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                             <p className="text-xs text-slate-200">{achievement.description}</p>
                                         </div>
                                     </div>
@@ -425,15 +420,15 @@ export const Team = () => {
                             </ul>
                         </div>
 
-                        {/* Quick CTA */}
+                        {/* Quick CTA - Acessibilidade: Adicionado indicador de foco */}
                         <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center shadow-xl shadow-amber-500/20">
                             <div className="text-4xl mb-3">⚡</div>
                             <h3 className="font-bold text-lg mb-2">Vagas Limitadas!</h3>
-                            {/* [CORREÇÃO 1.4.3] text-white/90 (OK) */}
                             <p className="text-sm mb-4 text-white/90">Agende agora e garanta seu horário</p>
                             <button
                                 onClick={openBooking}
-                                className="w-full px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-slate-100 transition-all duration-300 font-bold"
+                                // Corrigido: Adicionado foco acessível (focus:ring)
+                                className="w-full px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-slate-100 transition-all duration-300 font-bold focus:outline-none focus:ring-4 focus:ring-orange-600/50"
                             >
                                 Reservar Agora
                             </button>
@@ -455,8 +450,8 @@ export const Team = () => {
                                             <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" aria-hidden="true" />
                                         ))}
                                     </div>
-                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
-                                    <span className="text-xs text-slate-300">{testimonial.date}</span>
+                                    {/* Corrigido: text-slate-300 para text-slate-200 para garantir melhor contraste. */}
+                                    <span className="text-xs text-slate-200">{testimonial.date}</span>
                                 </div>
                                 <p className="text-slate-200 mb-4 italic">"{testimonial.comment}"</p>
                                 <p className="text-white font-semibold">— {testimonial.name}</p>

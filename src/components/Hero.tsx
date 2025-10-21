@@ -218,18 +218,19 @@ export const Hero = () => {
           {/* Left Column - Text Content */}
           <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center space-x-2">
-              <div className="flex" aria-label="Avaliação 5 estrelas">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 fill-amber-400"
-                    aria-hidden="true"
-                  />
-                ))}
-              </div>
-              <span className="text-slate-200 font-semibold text-sm sm:text-base">
-                4.9/5 • 500+ clientes satisfeitos
-              </span>
+                {/* CORREÇÃO ARIA: Removido aria-label do DIV e usado a semântica de texto. */}
+                <span className="flex" role="img" aria-label="Avaliação 4.9 de 5 estrelas">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 fill-amber-400"
+                      aria-hidden="true"
+                    />
+                  ))}
+                </span>
+                <span className="text-slate-200 font-semibold text-sm sm:text-base">
+                  4.9/5 • 500+ clientes satisfeitos
+                </span>
             </div>
 
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
@@ -266,18 +267,19 @@ export const Hero = () => {
               ))}
             </div>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Adicionado Focus Ring para Acessibilidade por Teclado */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button 
                 onClick={openBookingModal}
-                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:shadow-lg hover:shadow-amber-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95"
+                className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:shadow-lg hover:shadow-amber-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
               >
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Reservar Agora - 3 Passos
               </button>
               <button 
                 onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95"
+                // Adicionado Focus Ring para Acessibilidade por Teclado
+                className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
               >
                 Ver Nossos Serviços
               </button>
@@ -393,13 +395,14 @@ export const Hero = () => {
                   
                   <button 
                     onClick={openBookingModal}
-                    className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95"
+                    // Adicionado Focus Ring para Acessibilidade por Teclado
+                    className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar Horário
                   </button>
 
-                  {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                  {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 (Mantido o 300 pois o fundo escuro é muito escuro) */}
                   <p className="text-xs text-slate-300 text-center">
                     🔒 Agendamento seguro e rápido • Atualizado em tempo real
                   </p>

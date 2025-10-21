@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Cookie, Check } from 'lucide-react';
+import { Cookie, Check, Shield } from 'lucide-react'; // Adicionado Shield para melhor ícone
 
 export const CookieConsent = () => {
   const CONSENT_KEY = 'davidbarber_cookie_consent_v1';
@@ -18,6 +18,7 @@ export const CookieConsent = () => {
   };
 
   const handleOpenPrivacy = () => {
+    // Dispara um evento customizado para que o componente pai (ou um modal wrapper) possa capturá-lo
     window.dispatchEvent(new CustomEvent('OPEN_PRIVACY_MODAL'));
   };
 
@@ -29,6 +30,7 @@ export const CookieConsent = () => {
     <div 
       className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t-2 border-amber-500 shadow-2xl z-50 p-6 animate-in slide-in-from-bottom duration-500"
       role="dialog"
+      aria-modal="true" // Adicionado aria-modal="true" para melhor prática em diálogos modais
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-description"
     >
@@ -46,11 +48,13 @@ export const CookieConsent = () => {
               análise para entender como você interage com ele. Para mais detalhes, consulte nossa 
               <button 
                 onClick={handleOpenPrivacy}
-                className="text-amber-400 underline hover:text-orange-500 transition-colors mx-1 font-semibold"
+                // Acessibilidade: Adicionado focus:ring para indicar foco do teclado
+                className="text-amber-400 underline hover:text-orange-500 transition-colors mx-1 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 rounded px-1 -mx-1"
                 aria-label="Abrir Política de Privacidade"
               >
                 Política de Privacidade
-              </button>.
+              </button>
+              .
             </p>
           </div>
         </div>
@@ -58,11 +62,12 @@ export const CookieConsent = () => {
         {/* Botão de Aceite */}
         <button 
           onClick={handleAccept}
-          className="w-full md:w-auto py-3 px-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex-shrink-0 flex items-center justify-center gap-2"
+          // Acessibilidade: Adicionado focus:ring para indicar foco do teclado
+          className="w-full md:w-auto py-3 px-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex-shrink-0 flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-amber-500/50 active:scale-95"
           aria-label="Aceitar cookies e fechar aviso"
         >
           <Check className="h-5 w-5" aria-hidden="true" />
-          Aceitar e Fechar
+          Aceitar e Continuar
         </button>
       </div>
     </div>
