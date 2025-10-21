@@ -28,29 +28,16 @@ export const Hero = () => {
   const fetchLiveData = async () => {
     try {
       const now = new Date();
-      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
-      const { data: inProgressData, error: inProgressError } = await supabase
+      // ✅ Query SIMPLES - Sem foreign key join
+      const { data: allData, error: allError } = await supabase
         .from('appointments')
-        .select(`
-          service_type,
-          price,
-          scheduled_date,
-          status,
-          user_profiles!appointments_professional_id_fkey (
-            full_name
-          )
-        `)
-        .eq('status', 'in_progress')
-        .gte('scheduled_date', todayStart.toISOString())
-        .lte('scheduled_date', todayEnd.toISOString())
-        .order('scheduled_date', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .select('service_type, price, scheduled_date, status, professional_id')
+        .in('status', ['in_progress', 'scheduled'])
+        .order('scheduled_date', { ascending: true });
 
-      if (inProgressError && (inProgressError.code === 'PGRST116' || inProgressError.message.includes('406'))) {
-        console.warn('⚠️ Sem permissão para consultar agendamentos. Hero funcionará sem dados ao vivo.');
+      if (allError) {
+        console.error('Erro ao buscar agendamentos:', allError);
         setCurrentAppointment(null);
         setProfessionalStatus('available');
         setNextAvailableSlot({ time: "09:00", available: true });
@@ -58,73 +45,56 @@ export const Hero = () => {
         return;
       }
 
-      if (inProgressData) {
-        setCurrentAppointment({
-          service_type: inProgressData.service_type,
-          price: inProgressData.price,
-          scheduled_date: inProgressData.scheduled_date,
-          professional: inProgressData.user_profiles as any,
-          status: inProgressData.status
+      if (allData && allData.length > 0) {
+        // Filtrar apenas agendamentos de hoje
+        const todayAppointments = allData.filter(apt => {
+          const aptDate = new Date(apt.scheduled_date);
+          return aptDate.getDate() === now.getDate() && 
+                 aptDate.getMonth() === now.getMonth() && 
+                 aptDate.getFullYear() === now.getFullYear();
         });
-        setProfessionalStatus('busy');
-      } else {
-        const { data: scheduledData, error: scheduledError } = await supabase
-          .from('appointments')
-          .select(`
-            service_type,
-            price,
-            scheduled_date,
-            status,
-            user_profiles!appointments_professional_id_fkey (
-              full_name
-            )
-          `)
-          .eq('status', 'scheduled')
-          .gte('scheduled_date', now.toISOString())
-          .lte('scheduled_date', todayEnd.toISOString())
-          .order('scheduled_date', { ascending: true })
-          .limit(1)
-          .maybeSingle();
 
-        if (scheduledError && (scheduledError.code === 'PGRST116' || scheduledError.message.includes('406'))) {
-          console.warn('⚠️ Sem permissão para consultar agendamentos.');
-          setCurrentAppointment(null);
-          setProfessionalStatus('available');
-          setNextAvailableSlot({ time: "09:00", available: true });
-          setLoading(false);
-          return;
-        }
+        // Buscar agendamento em progresso
+        const inProgress = todayAppointments.find(apt => apt.status === 'in_progress');
+        const targetAppointment = inProgress || todayAppointments.find(apt => 
+          apt.status === 'scheduled' && 
+          new Date(apt.scheduled_date) > now
+        );
 
-        if (scheduledData) {
+        if (targetAppointment) {
+          // Buscar dados do profissional separadamente
+          let professionalName = 'Profissional';
+          
+          if (targetAppointment.professional_id) {
+            const { data: professionalData } = await supabase
+              .from('user_profiles')
+              .select('full_name')
+              .eq('id', targetAppointment.professional_id)
+              .single();
+            
+            if (professionalData) {
+              professionalName = professionalData.full_name;
+            }
+          }
+
           setCurrentAppointment({
-            service_type: scheduledData.service_type,
-            price: scheduledData.price,
-            scheduled_date: scheduledData.scheduled_date,
-            professional: scheduledData.user_profiles as any,
-            status: scheduledData.status
+            service_type: targetAppointment.service_type,
+            price: targetAppointment.price,
+            scheduled_date: targetAppointment.scheduled_date,
+            professional: {
+              full_name: professionalName
+            },
+            status: targetAppointment.status
           });
-          setProfessionalStatus('available');
+
+          setProfessionalStatus(inProgress ? 'busy' : 'available');
         } else {
           setCurrentAppointment(null);
           setProfessionalStatus('available');
         }
-      }
 
-      const { data: allAppointments, error: allError } = await supabase
-        .from('appointments')
-        .select('scheduled_date')
-        .gte('scheduled_date', todayStart.toISOString())
-        .lte('scheduled_date', todayEnd.toISOString())
-        .in('status', ['scheduled', 'in_progress']);
-
-      if (allError && (allError.code === 'PGRST116' || allError.message.includes('406'))) {
-        setNextAvailableSlot({ time: "09:00", available: true });
-        setLoading(false);
-        return;
-      }
-
-      if (allAppointments) {
-        const occupiedTimes = allAppointments.map(apt => {
+        // Calcular próximo horário disponível
+        const occupiedTimes = todayAppointments.map(apt => {
           const date = new Date(apt.scheduled_date);
           const hours = date.getHours().toString().padStart(2, '0');
           const minutes = date.getMinutes().toString().padStart(2, '0');
@@ -147,6 +117,10 @@ export const Hero = () => {
         } else {
           setNextAvailableSlot({ time: "Amanhã, 09:00", available: true });
         }
+      } else {
+        setCurrentAppointment(null);
+        setProfessionalStatus('available');
+        setNextAvailableSlot({ time: "09:00", available: true });
       }
 
       setLoading(false);
@@ -203,22 +177,17 @@ export const Hero = () => {
   };
 
   return (
-    // [CORREÇÃO 2.4.1] Adicionado id="main-content" para o link "Pular para o conteúdo"
     <section id="main-content" className="relative min-h-screen flex items-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      {/* Background Pattern */}
       <div className="absolute inset-0 z-0 opacity-10" aria-hidden="true">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}></div>
       </div>
 
-      {/* Content */}
       <div className="relative z-10 container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
-          {/* Left Column - Text Content */}
           <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center space-x-2">
-                {/* CORREÇÃO ARIA: Removido aria-label do DIV e usado a semântica de texto. Adicionado role="img" */}
                 <span className="flex" role="img" aria-label="Avaliação 4.9 de 5 estrelas">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -248,7 +217,6 @@ export const Hero = () => {
               experimente o melhor da barbearia moderna.
             </p>
 
-            {/* Quick Benefits */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {[
                 { icon: Calendar, text: "Agendamento online 24/7" },
@@ -267,7 +235,6 @@ export const Hero = () => {
               ))}
             </div>
 
-            {/* CTA Buttons - CORRIGIDO FOCO DE TECLADO */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button 
                 onClick={openBookingModal}
@@ -278,34 +245,28 @@ export const Hero = () => {
               </button>
               <button 
                 onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                // CORRIGIDO FOCO DE TECLADO
                 className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
               >
                 Ver Nossos Serviços
               </button>
             </div>
 
-            {/* Quick Stats */}
             <div className="flex items-center justify-around sm:justify-start sm:space-x-8 pt-6 sm:pt-8 border-t border-slate-700">
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400">500+</div>
-                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                 <div className="text-xs sm:text-sm text-slate-200">Clientes</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400">8</div>
-                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                 <div className="text-xs sm:text-sm text-slate-200">Anos</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl sm:text-3xl font-bold text-amber-400">98%</div>
-                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                 <div className="text-xs sm:text-sm text-slate-200">Satisfação</div>
               </div>
             </div>
           </div>
 
-          {/* Right Column - Live Booking Preview */}
           <div className="flex justify-center lg:justify-end">
             <div className="bg-slate-800 border-2 border-amber-500/30 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 hover:border-amber-500/50 transition-all duration-300">
               <div className="flex items-center justify-between mb-5 sm:mb-6">
@@ -341,7 +302,6 @@ export const Hero = () => {
 
                       <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
                         <div className="flex items-center justify-between mb-2">
-                          {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                           <div className="text-xs sm:text-sm text-slate-200">
                             {currentAppointment.status === 'in_progress' ? 'Serviço em Andamento' : 'Próximo Serviço'}
                           </div>
@@ -356,7 +316,6 @@ export const Hero = () => {
                       </div>
                       
                       <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                         <div className="text-xs sm:text-sm text-slate-200 mb-1">Profissional</div>
                         <div className="flex items-center justify-between">
                           <div className="font-bold text-white text-sm sm:text-base">{currentAppointment.professional.full_name}</div>
@@ -378,7 +337,6 @@ export const Hero = () => {
                     <div className="p-4 bg-slate-700/30 rounded-xl border border-slate-600 text-center">
                       <UserCheck className="h-12 w-12 mx-auto mb-3 text-green-400" />
                       <p className="text-white font-bold mb-1">Profissional Disponível</p>
-                      {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                       <p className="text-sm text-slate-200">Nenhum atendimento agendado no momento</p>
                     </div>
                   )}
@@ -395,14 +353,12 @@ export const Hero = () => {
                   
                   <button 
                     onClick={openBookingModal}
-                    // CORRIGIDO FOCO DE TECLADO
                     className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar Horário
                   </button>
 
-                  {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
                   <p className="text-xs text-slate-300 text-center">
                     🔒 Agendamento seguro e rápido • Atualizado em tempo real
                   </p>
@@ -415,7 +371,6 @@ export const Hero = () => {
 
       {nextAvailableSlot && (
         <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
-          {/* CORREÇÃO DE CONTRASTE: bg-amber-500 -> bg-orange-600 */}
           <div className="bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
             ⚡ Próximo horário: {nextAvailableSlot.time}
           </div>
