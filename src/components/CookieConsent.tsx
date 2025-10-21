@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Cookie, Check, Shield } from 'lucide-react'; // Adicionado Shield para melhor ícone
+import { Cookie, Check } from 'lucide-react';
 
 export const CookieConsent = () => {
   const CONSENT_KEY = 'davidbarber_cookie_consent_v1';
@@ -18,7 +18,6 @@ export const CookieConsent = () => {
   };
 
   const handleOpenPrivacy = () => {
-    // Dispara um evento customizado para que o componente pai (ou um modal wrapper) possa capturá-lo
     window.dispatchEvent(new CustomEvent('OPEN_PRIVACY_MODAL'));
   };
 
@@ -30,7 +29,7 @@ export const CookieConsent = () => {
     <div 
       className="fixed bottom-0 left-0 right-0 bg-slate-900 border-t-2 border-amber-500 shadow-2xl z-50 p-6 animate-in slide-in-from-bottom duration-500"
       role="dialog"
-      aria-modal="true" // Adicionado aria-modal="true" para melhor prática em diálogos modais
+      aria-modal="true" // CORREÇÃO ARIA: Adicionado aria-modal="true"
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-description"
     >
@@ -40,33 +39,32 @@ export const CookieConsent = () => {
         <div className="flex items-start gap-4">
           <Cookie className="h-8 w-8 text-amber-400 flex-shrink-0 mt-1" aria-hidden="true" />
           <div className="text-slate-200">
-            <h2 id="cookie-consent-title" className="text-lg font-semibold text-white">
+            {/* [CORREÇÃO 1.2.3.4] H3 - Título do Banner (Alterado de h2) */}
+            <h3 id="cookie-consent-title" className="text-lg font-semibold text-white">
               Nós valorizamos sua privacidade
-            </h2>
+            </h3>
             <p id="cookie-consent-description" className="text-sm leading-relaxed max-w-lg">
               Este site utiliza cookies essenciais para garantir o seu correto funcionamento e cookies de 
               análise para entender como você interage com ele. Para mais detalhes, consulte nossa 
               <button 
                 onClick={handleOpenPrivacy}
-                // Acessibilidade: Adicionado focus:ring para indicar foco do teclado
-                className="text-amber-400 underline hover:text-orange-500 transition-colors mx-1 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 rounded px-1 -mx-1"
+                className="text-amber-400 underline hover:text-orange-500 transition-colors mx-1 font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500 rounded px-1 -mx-1" // CORREÇÃO FOCO
                 aria-label="Abrir Política de Privacidade"
               >
                 Política de Privacidade
-              </button>
-              .
+              </button>.
             </p>
           </div>
         </div>
         
-        {/* Botão de Aceite - Acessibilidade de Foco OK */}
+        {/* Botão de Aceite */}
         <button 
           onClick={handleAccept}
-          // Acessibilidade: Adicionado focus:ring para indicar foco do teclado
-          className="w-full md:w-auto py-3 px-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex-shrink-0 flex items-center justify-center gap-2 focus:outline-none focus:ring-4 focus:ring-amber-500/50 active:scale-95"
+          // CORREÇÃO FOCO DE TECLADO
+          className="w-full md:w-auto py-3 px-6 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex-shrink-0 flex items-center justify-center gap-2 active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
           aria-label="Aceitar cookies e fechar aviso"
         >
-          <Check className="h-5 w-5" aria-hidden="true" />
+          <Check className="h-5 w-5" />
           Aceitar e Continuar
         </button>
       </div>

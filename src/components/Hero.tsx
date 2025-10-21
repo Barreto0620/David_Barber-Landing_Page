@@ -218,7 +218,7 @@ export const Hero = () => {
           {/* Left Column - Text Content */}
           <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center space-x-2">
-                {/* CORREÇÃO ARIA: Removido aria-label do DIV e usado a semântica de texto. */}
+                {/* CORREÇÃO ARIA: Removido aria-label do DIV e usado a semântica de texto. Adicionado role="img" */}
                 <span className="flex" role="img" aria-label="Avaliação 4.9 de 5 estrelas">
                   {[...Array(5)].map((_, i) => (
                     <Star
@@ -267,7 +267,7 @@ export const Hero = () => {
               ))}
             </div>
 
-            {/* CTA Buttons - Adicionado Focus Ring para Acessibilidade por Teclado */}
+            {/* CTA Buttons - CORRIGIDO FOCO DE TECLADO */}
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button 
                 onClick={openBookingModal}
@@ -278,7 +278,7 @@ export const Hero = () => {
               </button>
               <button 
                 onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
-                // Adicionado Focus Ring para Acessibilidade por Teclado
+                // CORRIGIDO FOCO DE TECLADO
                 className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
               >
                 Ver Nossos Serviços
@@ -395,13 +395,14 @@ export const Hero = () => {
                   
                   <button 
                     onClick={openBookingModal}
+                    // CORRIGIDO FOCO DE TECLADO
                     className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Reservar Horário
                   </button>
 
-                  {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 (Mantido o 300 pois o fundo escuro é muito escuro) */}
+                  {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
                   <p className="text-xs text-slate-300 text-center">
                     🔒 Agendamento seguro e rápido • Atualizado em tempo real
                   </p>
