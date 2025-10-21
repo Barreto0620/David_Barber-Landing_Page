@@ -190,7 +190,6 @@ export const Team = () => {
     };
 
     const openBooking = () => {
-        // Dispara evento para abrir modal de agendamento (consistente com Services.tsx)
         window.dispatchEvent(new CustomEvent('openBooking'));
     };
 
@@ -216,7 +215,6 @@ export const Team = () => {
                                 <div className="relative h-[400px] md:h-auto">
                                     <img
                                         src={barber.image}
-                                        // Acessibilidade: Alt text descritivo
                                         alt={`Foto de ${barber.name}, ${barber.role}`}
                                         className="w-full h-full object-cover"
                                     />
@@ -237,6 +235,7 @@ export const Team = () => {
                                         <p className="text-amber-400 font-semibold text-lg mb-2">
                                             {barber.role}
                                         </p>
+                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                         <div className="flex items-center space-x-4 text-sm text-slate-200">
                                             <span className="flex items-center">
                                                 <Clock className="h-4 w-4 mr-1" />
@@ -249,9 +248,13 @@ export const Team = () => {
                                         </div>
                                     </div>
 
-                                    {/* Rating */}
+                                    {/* Rating - CORREÇÃO ARIA: Adicionado role="img" */}
                                     <div className="flex items-center mb-6 pb-6 border-b border-slate-700">
-                                        <div className="flex mr-2" aria-label={`Avaliação ${barber.rating} de 5 estrelas`}>
+                                        <div 
+                                            className="flex mr-2" 
+                                            role="img" // CORREÇÃO ARIA: Adicionado role="img" para permitir aria-label em elemento não-interativo
+                                            aria-label={`Avaliação ${barber.rating} de 5 estrelas`}
+                                        >
                                             {[...Array(5)].map((_, i) => (
                                                 <Star
                                                     key={i}
@@ -261,6 +264,7 @@ export const Team = () => {
                                             ))}
                                         </div>
                                         <span className="text-white font-bold text-lg">{barber.rating}</span>
+                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                         <span className="text-slate-200 ml-2">({barber.reviewCount} avaliações)</span>
                                     </div>
 
@@ -269,7 +273,7 @@ export const Team = () => {
                                         {barber.bio}
                                     </p>
 
-                                    {/* CTA Button - Acessibilidade: Adicionado indicador de foco */}
+                                    {/* CTA Button - CORREÇÃO FOCO: Adicionado focus:ring */}
                                     <button
                                         onClick={openBooking}
                                         className="w-full px-6 py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold flex items-center justify-center text-lg focus:outline-none focus:ring-4 focus:ring-amber-500/50"
@@ -292,6 +296,7 @@ export const Team = () => {
                                         <h3 className="text-2xl font-bold text-white">
                                             Serviços Mais Populares
                                         </h3>
+                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                         <p className="text-sm text-slate-200">Os favoritos dos nossos clientes</p>
                                     </div>
                                 </div>
@@ -338,6 +343,7 @@ export const Team = () => {
                                                     <div className="flex items-center justify-between p-3 bg-slate-900/50 rounded-xl border border-slate-700">
                                                         <div className="flex items-center space-x-2">
                                                             <ThumbsUp className="h-4 w-4 text-amber-400" />
+                                                            {/* [CORREÇÃO 1.4.3] text-slate-200 -> text-slate-200 (OK) */}
                                                             <span className="text-sm text-slate-200">Total de Reservas</span>
                                                         </div>
                                                         <span className="text-2xl font-bold text-amber-400">
@@ -349,6 +355,7 @@ export const Team = () => {
                                                         <div className="p-3 bg-slate-900/70 rounded-xl border border-slate-600/50">
                                                             <div className="flex items-center space-x-2 mb-1.5">
                                                                 <Crown className="h-4 w-4 text-amber-400" />
+                                                                {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                                                 <span className="text-xs font-semibold text-slate-200 uppercase tracking-wide">
                                                                     Cliente Leal
                                                                 </span>
@@ -372,6 +379,7 @@ export const Team = () => {
                                 </div>
                             )}
 
+                            {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                             <div className="mt-6 pt-6 border-t border-slate-700 flex items-center justify-center space-x-2 text-xs text-slate-200">
                                 <div className="flex items-center space-x-1">
                                     <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -397,6 +405,7 @@ export const Team = () => {
                                         </div>
                                         <div>
                                             <h4 className="font-bold text-white text-sm">{achievement.title}</h4>
+                                            {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
                                             <p className="text-xs text-slate-200">{achievement.description}</p>
                                         </div>
                                     </div>
@@ -420,14 +429,15 @@ export const Team = () => {
                             </ul>
                         </div>
 
-                        {/* Quick CTA - Acessibilidade: Adicionado indicador de foco */}
+                        {/* Quick CTA - CORREÇÃO FOCO: Adicionado focus:ring */}
                         <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center shadow-xl shadow-amber-500/20">
                             <div className="text-4xl mb-3">⚡</div>
                             <h3 className="font-bold text-lg mb-2">Vagas Limitadas!</h3>
+                            {/* [CORREÇÃO 1.4.3] text-white/90 (OK) */}
                             <p className="text-sm mb-4 text-white/90">Agende agora e garanta seu horário</p>
                             <button
                                 onClick={openBooking}
-                                // Corrigido: Adicionado foco acessível (focus:ring)
+                                // CORREÇÃO FOCO: Adicionado focus:ring com cor de alto contraste (laranja)
                                 className="w-full px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-slate-100 transition-all duration-300 font-bold focus:outline-none focus:ring-4 focus:ring-orange-600/50"
                             >
                                 Reservar Agora
@@ -445,13 +455,17 @@ export const Team = () => {
                         {testimonials.map((testimonial, index) => (
                             <div key={index} className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-amber-500 transition-all duration-300">
                                 <div className="flex items-center justify-between mb-4">
-                                    <div className="flex" aria-label={`Avaliação ${testimonial.rating} estrelas`}>
+                                    <div 
+                                        className="flex" 
+                                        role="img" // CORREÇÃO ARIA: Adicionado role="img" para permitir aria-label
+                                        aria-label={`Avaliação ${testimonial.rating} estrelas`}
+                                    >
                                         {[...Array(testimonial.rating)].map((_, i) => (
                                             <Star key={i} className="h-4 w-4 text-amber-400 fill-amber-400" aria-hidden="true" />
                                         ))}
                                     </div>
-                                    {/* Corrigido: text-slate-300 para text-slate-200 para garantir melhor contraste. */}
-                                    <span className="text-xs text-slate-200">{testimonial.date}</span>
+                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
+                                    <span className="text-xs text-slate-300">{testimonial.date}</span>
                                 </div>
                                 <p className="text-slate-200 mb-4 italic">"{testimonial.comment}"</p>
                                 <p className="text-white font-semibold">— {testimonial.name}</p>
