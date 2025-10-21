@@ -117,13 +117,13 @@ export const Services = () => {
                                         <ServiceIcon className="h-7 w-7 text-amber-400" />
                                     </div>
 
-                                    {/* Badge (POPULAR) - CORREÇÃO DE CONTRASTE (6) */}
+                                    {/* Badge (POPULAR) - Contraste Corrigido */}
                                     {service.category === 'destaque' && (
                                         <span className="absolute top-0 right-0 px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs font-bold border border-green-500/30">DESTAQUE</span>
                                     )}
                                     {service.category === 'popular' && (
                                         <span 
-                                            // Corrigido text-orange-600 para text-slate-900 para alto contraste no fundo claro
+                                            // Contraste corrigido: text-slate-900 no fundo bg-amber-400/20
                                             className="absolute top-0 right-0 text-xs font-bold text-slate-900 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-500/30 animate-pulse"
                                         >
                                             POPULAR
@@ -137,14 +137,14 @@ export const Services = () => {
                                     {/* Price and Duration */}
                                     <div className="flex justify-between items-center border-t border-slate-700 pt-4">
                                         <div className="text-left">
-                                            {/* CORREÇÃO DE CONTRASTE (2, 3, 4, 5, 7): text-slate-500 -> text-slate-300 */}
+                                            {/* Contraste corrigido: text-slate-300 no fundo bg-slate-800 */}
                                             <span className="text-xs text-slate-300 mb-1 block">A partir de</span>
                                             <span className="text-2xl font-bold text-amber-400 group-hover:text-orange-500 transition-colors duration-300">
                                                 R$ {service.price.toFixed(2).replace('.', ',')}
                                             </span>
                                         </div>
                                         <div className="text-right">
-                                            {/* CORREÇÃO DE CONTRASTE (Duração): text-slate-400 -> text-slate-300 */}
+                                            {/* Contraste corrigido: text-slate-300 no fundo bg-slate-900/50 */}
                                             <span className="text-sm text-slate-300 flex items-center bg-slate-900/50 px-3 py-1.5 rounded-lg group-hover:bg-slate-900 transition-colors duration-300">
                                                 <Clock className="h-4 w-4 mr-1.5 text-amber-400" aria-hidden="true" /> 
                                                 {service.duration_minutes} min
@@ -152,7 +152,7 @@ export const Services = () => {
                                         </div>
                                     </div>
 
-                                    {/* Call to Action - ACESSIBILIDADE: Foco e rótulo garantidos */}
+                                    {/* Call to Action - Acessibilidade de Foco OK */}
                                     <button 
                                         onClick={() => handleSelectService(service)}
                                         className="mt-4 w-full py-3 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 font-bold flex items-center justify-center text-lg focus:outline-none focus:ring-4 focus:ring-amber-500/50"

@@ -59,7 +59,7 @@ export const CookieConsent = () => {
           </div>
         </div>
         
-        {/* Botão de Aceite */}
+        {/* Botão de Aceite - Acessibilidade de Foco OK */}
         <button 
           onClick={handleAccept}
           // Acessibilidade: Adicionado focus:ring para indicar foco do teclado

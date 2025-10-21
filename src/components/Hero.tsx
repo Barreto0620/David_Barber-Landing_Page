@@ -395,7 +395,6 @@ export const Hero = () => {
                   
                   <button 
                     onClick={openBookingModal}
-                    // Adicionado Focus Ring para Acessibilidade por Teclado
                     className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
                   >
                     <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
@@ -415,7 +414,7 @@ export const Hero = () => {
 
       {nextAvailableSlot && (
         <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
-          {/* CORREÇÃO DE CONTRASTE (1): bg-amber-500 -> bg-orange-600 para contraste com text-white */}
+          {/* CORREÇÃO DE CONTRASTE: bg-amber-500 -> bg-orange-600 */}
           <div className="bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
             ⚡ Próximo horário: {nextAvailableSlot.time}
           </div>
