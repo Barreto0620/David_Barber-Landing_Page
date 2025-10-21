@@ -415,7 +415,8 @@ export const Hero = () => {
 
       {nextAvailableSlot && (
         <div className="absolute bottom-6 right-6 sm:bottom-10 sm:right-10 hidden lg:block animate-bounce">
-          <div className="bg-amber-500 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
+          {/* CORREÇÃO DE CONTRASTE (1): bg-amber-500 -> bg-orange-600 para contraste com text-white */}
+          <div className="bg-orange-600 text-white px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold shadow-lg">
             ⚡ Próximo horário: {nextAvailableSlot.time}
           </div>
         </div>

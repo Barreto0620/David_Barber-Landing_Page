@@ -219,7 +219,8 @@ export const Team = () => {
                                         className="w-full h-full object-cover"
                                     />
                                     <div className="absolute top-4 right-4">
-                                        <span className="px-4 py-2 bg-green-500 text-white rounded-full text-sm font-bold shadow-lg flex items-center">
+                                        {/* CORREÇÃO DE CONTRASTE (8): bg-green-500 -> bg-green-700 */}
+                                        <span className="px-4 py-2 bg-green-700 text-white rounded-full text-sm font-bold shadow-lg flex items-center">
                                             <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
                                             Disponível Agora
                                         </span>
@@ -429,7 +430,7 @@ export const Team = () => {
                             </ul>
                         </div>
 
-                        {/* Quick CTA - CORREÇÃO FOCO: Adicionado focus:ring */}
+                        {/* Quick CTA - CORREÇÃO FOCO e CONTRASTE (9) */}
                         <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl p-6 text-white text-center shadow-xl shadow-amber-500/20">
                             <div className="text-4xl mb-3">⚡</div>
                             <h3 className="font-bold text-lg mb-2">Vagas Limitadas!</h3>
@@ -437,8 +438,8 @@ export const Team = () => {
                             <p className="text-sm mb-4 text-white/90">Agende agora e garanta seu horário</p>
                             <button
                                 onClick={openBooking}
-                                // CORREÇÃO FOCO: Adicionado focus:ring com cor de alto contraste (laranja)
-                                className="w-full px-6 py-3 bg-white text-orange-600 rounded-lg hover:bg-slate-100 transition-all duration-300 font-bold focus:outline-none focus:ring-4 focus:ring-orange-600/50"
+                                // CORREÇÃO DE CONTRASTE (9): text-orange-600 -> text-orange-700 (para contraste com bg-white)
+                                className="w-full px-6 py-3 bg-white text-orange-700 rounded-lg hover:bg-slate-100 transition-all duration-300 font-bold focus:outline-none focus:ring-4 focus:ring-orange-700/50"
                             >
                                 Reservar Agora
                             </button>
