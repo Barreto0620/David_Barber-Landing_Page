@@ -263,12 +263,18 @@ export const BookingModal = ({ isOpen, onClose, setSuccessMessage }: BookingModa
                 throw new Error(`Erro ao criar agendamento: ${appointmentError.message}`);
             }
 
-            setSuccessMessage(`${selectedService.name} agendado para ${localDateTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })} às ${selectedTime}!`);
+            // Fechar modal PRIMEIRO, depois mostrar mensagem de sucesso
+            resetAndClose();
 
+            // Pequeno delay para garantir que o modal fechou antes de mostrar a mensagem
             setTimeout(() => {
-                resetAndClose();
+                setSuccessMessage(`${selectedService.name} agendado para ${localDateTime.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })} às ${selectedTime}!`);
+            }, 100);
+
+            // Limpar mensagem após 5 segundos
+            setTimeout(() => {
                 setSuccessMessage(null);
-            }, 3000);
+            }, 5100);
 
         } catch (err: any) {
             setError(err.message);
