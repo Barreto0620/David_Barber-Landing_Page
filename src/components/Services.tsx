@@ -48,11 +48,14 @@ export const Services = () => {
 
                 // Contar quantas vezes cada serviço foi agendado
                 const serviceCounts: { [key: string]: number } = {};
-                if (appointmentsData) {
+                if (appointmentsData && appointmentsData.length > 0) {
                     appointmentsData.forEach((apt) => {
                         const serviceName = apt.service_type;
                         serviceCounts[serviceName] = (serviceCounts[serviceName] || 0) + 1;
                     });
+                    console.log('📊 Estatísticas de serviços agendados:', serviceCounts);
+                } else {
+                    console.log('ℹ️ Nenhum agendamento encontrado no banco. Badge "POPULAR" será determinado quando houver agendamentos.');
                 }
 
                 // Determinar os 3 serviços mais populares
@@ -60,6 +63,10 @@ export const Services = () => {
                     .sort(([, a], [, b]) => b - a)
                     .slice(0, 3)
                     .map(([name]) => name);
+
+                if (sortedServices.length > 0) {
+                    console.log('🔥 Top 3 serviços mais populares:', sortedServices);
+                }
 
                 // Adicionar categoria "popular" aos serviços mais agendados
                 const servicesWithCategories = (servicesData || []).map(service => {
@@ -69,6 +76,7 @@ export const Services = () => {
                     return service;
                 });
 
+                console.log('✅ Serviços carregados do banco de dados:', servicesWithCategories.length, 'serviços');
                 setServices(servicesWithCategories);
             } catch (err: any) {
                 setError(err.message || "Falha ao carregar serviços. Verifique sua conexão.");

@@ -168,15 +168,23 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
                             disabled={!selectedDate || !isAvailable || isPassed}
                             className={`
                                 p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 relative
-                                ${!selectedDate || !isAvailable || isPassed ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
-                                ${(isOccupied || isPassed) && selectedDate ? 'bg-red-900/20 border-red-700 text-red-400' : ''}
-                                ${selectedTime === time && selectedDate && isAvailable && !isPassed ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' :
-                                    selectedDate && isAvailable && !isPassed ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
+                                ${selectedTime === time && selectedDate && isAvailable && !isPassed
+                                    ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30'
+                                    : ''}
+                                ${!isAvailable || isPassed
+                                    ? 'cursor-not-allowed bg-red-900/30 border-red-700/50 text-red-400 line-through opacity-60'
+                                    : ''}
+                                ${selectedDate && isAvailable && !isPassed && selectedTime !== time
+                                    ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800 bg-slate-800/50'
+                                    : ''}
+                                ${!selectedDate
+                                    ? 'opacity-40 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500'
+                                    : ''}
                             `}
                         >
                             {time}
                             {(isOccupied || isPassed) && selectedDate && (
-                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900"></span>
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-white text-xs font-bold">✕</span>
                             )}
                         </button>
                     );

@@ -34,6 +34,14 @@ export const Header = () => {
     }, []);
 
     const smoothScrollTo = (id: string) => {
+        // Se for 'home', rola para o topo
+        if (id === 'home') {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setIsMenuOpen(false);
+            return;
+        }
+
+        // Para outros IDs, busca o elemento
         const element = document.getElementById(id);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'start' });
