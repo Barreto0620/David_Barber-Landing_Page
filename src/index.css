@@ -225,6 +225,67 @@
     }
   }
 
+  /* Animações Personalizadas para Background Interativo */
+  @keyframes float {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(30px, -30px) scale(1.1);
+    }
+    66% {
+      transform: translate(-20px, 20px) scale(0.9);
+    }
+  }
+
+  @keyframes floatDelayed {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    33% {
+      transform: translate(-40px, 30px) scale(1.15);
+    }
+    66% {
+      transform: translate(30px, -25px) scale(0.85);
+    }
+  }
+
+  @keyframes gradient {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.8;
+    }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.05);
+    }
+  }
+
+  .animate-float {
+    animation: float 20s ease-in-out infinite;
+  }
+
+  .animate-float-delayed {
+    animation: floatDelayed 25s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    animation: gradient 8s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 6s ease-in-out infinite;
+  }
+
   /* Loading States */
   .skeleton {
     @apply animate-pulse bg-muted/50 rounded;

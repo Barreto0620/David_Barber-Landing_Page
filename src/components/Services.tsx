@@ -23,9 +23,10 @@ export const Services = () => {
         const fetchServices = async () => {
             setLoading(true);
             setError(null);
-            
+
             try {
-                const { data, error: fetchError } = await supabase
+                // Buscar todos os serviços ativos
+                const { data: servicesData, error: fetchError } = await supabase
                     .from('services')
                     .select('*')
                     .eq('active', true)
@@ -35,11 +36,44 @@ export const Services = () => {
                     throw new Error(`Erro ao buscar serviços: ${fetchError.message}`);
                 }
 
-                setServices(data || []);
+                // Buscar estatísticas de agendamentos para determinar os mais populares
+                const { data: appointmentsData, error: appointmentsError } = await supabase
+                    .from('appointments')
+                    .select('service_type')
+                    .in('status', ['scheduled', 'completed', 'in_progress']);
+
+                if (appointmentsError) {
+                    console.warn('Aviso ao buscar estatísticas:', appointmentsError.message);
+                }
+
+                // Contar quantas vezes cada serviço foi agendado
+                const serviceCounts: { [key: string]: number } = {};
+                if (appointmentsData) {
+                    appointmentsData.forEach((apt) => {
+                        const serviceName = apt.service_type;
+                        serviceCounts[serviceName] = (serviceCounts[serviceName] || 0) + 1;
+                    });
+                }
+
+                // Determinar os 3 serviços mais populares
+                const sortedServices = Object.entries(serviceCounts)
+                    .sort(([, a], [, b]) => b - a)
+                    .slice(0, 3)
+                    .map(([name]) => name);
+
+                // Adicionar categoria "popular" aos serviços mais agendados
+                const servicesWithCategories = (servicesData || []).map(service => {
+                    if (sortedServices.includes(service.name)) {
+                        return { ...service, category: 'popular' };
+                    }
+                    return service;
+                });
+
+                setServices(servicesWithCategories);
             } catch (err: any) {
                 setError(err.message || "Falha ao carregar serviços. Verifique sua conexão.");
                 console.error("Erro ao buscar serviços:", err);
-                
+
                 // Dados mockados para fallback
                 setServices([
                     { id: 1, name: "Corte Clássico", description: "Corte na tesoura ou máquina, finalização com pomada.", price: 50.00, duration_minutes: 45, active: true },
@@ -54,9 +88,9 @@ export const Services = () => {
         };
 
         fetchServices();
-        
+
         // Simula recarregamento a cada 5 minutos para dados ao vivo (opcional, ajustável)
-        const interval = setInterval(fetchServices, 300000); 
+        const interval = setInterval(fetchServices, 300000);
         return () => clearInterval(interval);
     }, []);
 
@@ -117,15 +151,13 @@ export const Services = () => {
                                         <ServiceIcon className="h-7 w-7 text-amber-400" />
                                     </div>
 
-                                    {/* Badge (POPULAR) - Contraste Corrigido */}
+                                    {/* Badge (POPULAR) - Destaque Profissional */}
                                     {service.category === 'destaque' && (
                                         <span className="absolute top-0 right-0 px-3 py-1 bg-green-500/20 text-green-400 rounded-lg text-xs font-bold border border-green-500/30">DESTAQUE</span>
                                     )}
                                     {service.category === 'popular' && (
-                                        <span 
-                                            // Contraste corrigido: text-slate-900 no fundo bg-amber-400/20
-                                            className="absolute top-0 right-0 text-xs font-bold text-slate-900 bg-amber-400/20 px-3 py-1 rounded-full border border-amber-500/30 animate-pulse"
-                                        >
+                                        <span className="absolute top-0 right-0 flex items-center gap-1 text-xs font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 px-3 py-1.5 rounded-full shadow-lg shadow-amber-500/30 animate-pulse">
+                                            <span className="text-white">🔥</span>
                                             POPULAR
                                         </span>
                                     )}

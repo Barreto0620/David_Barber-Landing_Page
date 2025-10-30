@@ -22,7 +22,7 @@ export const SuccessToast = ({ message, setMessage }: SuccessToastProps) => {
     if (!message) return null;
 
     return (
-        <div className="fixed top-0 inset-x-0 z-[60] flex justify-center p-4 transition-all duration-500 ease-out">
+        <div className="fixed top-0 inset-x-0 z-[99999] flex justify-center p-4 transition-all duration-500 ease-out">
             <div className="flex items-center space-x-3 bg-green-600 shadow-xl shadow-green-500/50 text-white p-4 rounded-lg sm:max-w-md w-full animate-toast-in">
                 <Check className="h-6 w-6 flex-shrink-0" />
                 <span className="font-semibold text-sm sm:text-base">{message}</span>
