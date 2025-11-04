@@ -19,6 +19,7 @@ interface NextSlot {
 
 export const Hero = () => {
   const [currentAppointment, setCurrentAppointment] = useState<CurrentAppointment | null>(null);
+  const [lastCompletedService, setLastCompletedService] = useState<CurrentAppointment | null>(null);
   const [nextAvailableSlot, setNextAvailableSlot] = useState<NextSlot | null>(null);
   const [professionalStatus, setProfessionalStatus] = useState<'available' | 'busy' | 'offline'>('available');
   const [loading, setLoading] = useState(true);
@@ -43,6 +44,82 @@ export const Hero = () => {
         setNextAvailableSlot({ time: "09:00", available: true });
         setLoading(false);
         return;
+      }
+
+      // 🔥 BUSCAR ÚLTIMO SERVIÇO COMPLETO
+      // Tentativa 1: Ordenar por completed_at
+      let { data: completedData, error: completedError } = await supabase
+        .from('appointments')
+        .select('service_type, price, scheduled_date, status, professional_id, completed_at')
+        .eq('status', 'completed')
+        .not('completed_at', 'is', null)
+        .order('completed_at', { ascending: false })
+        .limit(1);
+
+      // Tentativa 2: Se não encontrar com completed_at, usar scheduled_date
+      if ((!completedData || completedData.length === 0) && !completedError) {
+        console.log('⚠️ Nenhum registro com completed_at, tentando scheduled_date...');
+        const result = await supabase
+          .from('appointments')
+          .select('service_type, price, scheduled_date, status, professional_id, completed_at')
+          .eq('status', 'completed')
+          .order('scheduled_date', { ascending: false })
+          .limit(1);
+        
+        completedData = result.data;
+        completedError = result.error;
+      }
+
+      console.log('🔍 Buscando último serviço completo:', { 
+        totalRegistros: completedData?.length || 0,
+        erro: completedError?.message || 'nenhum',
+        dados: completedData 
+      });
+
+      if (!completedError && completedData && completedData.length > 0) {
+        const lastCompleted = completedData[0];
+        console.log('✅ Último serviço encontrado:', {
+          servico: lastCompleted.service_type,
+          preco: lastCompleted.price,
+          data: lastCompleted.scheduled_date,
+          professional_id: lastCompleted.professional_id
+        });
+        
+        // Buscar dados do profissional do último serviço
+        let professionalName = 'Profissional';
+        
+        if (lastCompleted.professional_id) {
+          const { data: professionalData, error: profileError } = await supabase
+            .from('user_profiles')
+            .select('full_name, username, role')
+            .eq('id', lastCompleted.professional_id)
+            .single();
+          
+          console.log('👤 Dados do profissional:', { 
+            dados: professionalData,
+            erro: profileError?.message || 'nenhum'
+          });
+          
+          if (professionalData) {
+            // Tentar pegar full_name, senão username, senão deixar 'Profissional'
+            professionalName = professionalData.full_name || professionalData.username || 'Profissional';
+          }
+        }
+
+        setLastCompletedService({
+          service_type: lastCompleted.service_type,
+          price: lastCompleted.price,
+          scheduled_date: lastCompleted.scheduled_date,
+          professional: {
+            full_name: professionalName
+          },
+          status: lastCompleted.status
+        });
+        
+        console.log('💾 Estado atualizado - último serviço salvo:', professionalName);
+      } else {
+        console.log('⚠️ Nenhum serviço completo encontrado no banco');
+        setLastCompletedService(null);
       }
 
       if (allData && allData.length > 0) {
@@ -154,6 +231,11 @@ export const Hero = () => {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
   };
 
   const getTimeRemaining = (dateString: string) => {
@@ -349,21 +431,50 @@ export const Hero = () => {
                         </div>
                       </div>
                     </>
+                  ) : lastCompletedService ? (
+                    <>
+                      <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/30">
+                        <div className="flex items-center space-x-2 mb-3">
+                          <CheckCircle className="h-5 w-5 text-blue-400" />
+                          <span className="text-blue-400 font-bold text-sm">Último Serviço Prestado</span>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <div>
+                            <div className="text-xs text-slate-300 mb-1">Serviço</div>
+                            <div className="font-bold text-white text-base">{lastCompletedService.service_type}</div>
+                          </div>
+                          
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-xs text-slate-300 mb-1">Valor</div>
+                              <div className="text-amber-400 font-bold text-lg">R$ {lastCompletedService.price.toFixed(2)}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-xs text-slate-300 mb-1">Data/Hora</div>
+                              <div className="text-white font-semibold text-xs">
+                                {formatDate(lastCompletedService.scheduled_date)}
+                              </div>
+                              <div className="text-amber-400 font-bold text-sm">
+                                {formatTime(lastCompletedService.scheduled_date)}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="pt-2 border-t border-slate-600/50">
+                            <div className="text-xs text-slate-300 mb-1">Profissional</div>
+                            <div className="font-bold text-white text-sm">{lastCompletedService.professional.full_name}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                        
+                    </>
                   ) : (
                     <div className="p-4 bg-slate-700/30 rounded-xl border border-slate-600 text-center">
                       <UserCheck className="h-12 w-12 mx-auto mb-3 text-green-400" />
                       <p className="text-white font-bold mb-1">Profissional Disponível</p>
                       <p className="text-sm text-slate-200">Nenhum atendimento agendado no momento</p>
-                    </div>
-                  )}
-                  
-                  {nextAvailableSlot && (
-                    <div className="p-3 sm:p-4 bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-xl border border-green-500/30">
-                      <div className="text-xs sm:text-sm text-green-400 mb-1 font-bold">Próximo Horário Livre</div>
-                      <div className="font-bold text-white flex items-center text-base sm:text-lg">
-                        <Clock className="h-5 w-5 mr-2 text-green-400" />
-                        Hoje, {nextAvailableSlot.time}
-                      </div>
                     </div>
                   )}
                   
