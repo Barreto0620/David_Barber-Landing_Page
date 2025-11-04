@@ -10,69 +10,67 @@ interface ProfessionalSelectorProps {
 
 /**
  * Componente para seleção de profissional no modal de agendamento
+ * Exibe apenas David Sousa como profissional fixo
  */
-export const ProfessionalSelector = ({ professionals, selectedProfessional, setSelectedProfessional }: ProfessionalSelectorProps) => {
+export const ProfessionalSelector = ({ 
+    professionals, 
+    selectedProfessional, 
+    setSelectedProfessional 
+}: ProfessionalSelectorProps) => {
 
+    // Profissional fixo - David Sousa
+    const davidSousa: Professional = professionals.find(
+        p => p.full_name.toLowerCase().includes('david')
+    ) || professionals[0] || {
+        id: 'default-barber',
+        full_name: 'David Sousa'
+    };
+
+    // Selecionar automaticamente o David Sousa
     useEffect(() => {
-        if (!selectedProfessional && professionals.length === 1) {
-            setSelectedProfessional(professionals[0]);
+        if (!selectedProfessional && davidSousa) {
+            setSelectedProfessional(davidSousa);
         }
-    }, [professionals, selectedProfessional, setSelectedProfessional]);
-
-    const davidSousa = professionals.find(p => p.full_name.toLowerCase().includes('david sousa')) || professionals[0];
-    const isSingleProfessional = professionals.length === 1 && !!davidSousa;
+    }, [davidSousa, selectedProfessional, setSelectedProfessional]);
 
     return (
         <div>
             <h3 className="text-lg sm:text-xl font-bold text-white mb-3">Profissional</h3>
-            {professionals.length > 0 ? (
-                isSingleProfessional && davidSousa ? (
-                    <div
-                        className="w-full text-left p-4 border-2 rounded-xl bg-amber-500/10 border-amber-500 transition-all duration-300 shadow-lg shadow-amber-500/20"
-                    >
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                                <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl sm:text-2xl font-bold text-white">DS</div>
-                                <div>
-                                    <h4 className="font-bold text-white text-base sm:text-lg">{davidSousa.full_name}</h4>
-                                    <p className="text-xs text-amber-400 flex items-center">
-                                        <Star className="h-3 w-3 mr-1 fill-amber-400"/>
-                                        Barbeiro Principal
-                                    </p>
-                                </div>
-                            </div>
-                            <Check className="h-6 w-6 text-amber-500" />
+            
+            {/* Card fixo do David Sousa */}
+            <div className="w-full p-4 sm:p-5 border-2 rounded-xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-amber-500 transition-all duration-300 shadow-lg shadow-amber-500/20">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3 sm:space-x-4">
+                        {/* Avatar */}
+                        <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-xl sm:text-2xl font-bold text-white shadow-lg">
+                            DS
+                        </div>
+                        
+                        {/* Info */}
+                        <div>
+                            <h4 className="font-bold text-white text-base sm:text-lg">
+                                {davidSousa.full_name}
+                            </h4>
+                            <p className="text-xs sm:text-sm text-amber-400 flex items-center mt-1">
+                                <Star className="h-3 w-3 sm:h-4 sm:w-4 mr-1 fill-amber-400" />
+                                Barbeiro Principal
+                            </p>
                         </div>
                     </div>
-                ) : (
-                    professionals.map((pro) => (
-                        <button
-                            key={pro.id}
-                            onClick={() => setSelectedProfessional(pro)}
-                            className={`w-full text-left p-4 border-2 rounded-xl transition-all duration-300 ${
-                                selectedProfessional?.id === pro.id
-                                    ? 'border-amber-500 bg-amber-500/10'
-                                    : 'border-slate-700 hover:border-amber-500 hover:bg-slate-800'
-                            }`}
-                        >
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center space-x-3">
-                                    <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-slate-700 flex items-center justify-center text-xl sm:text-2xl">👨‍💼</div>
-                                    <div>
-                                        <h4 className="font-bold text-white text-sm sm:text-base">{pro.full_name}</h4>
-                                        <p className="text-xs text-slate-400">Barbeiro</p>
-                                    </div>
-                                </div>
-                                {selectedProfessional?.id === pro.id && <Check className="h-5 w-5 text-amber-500" />}
-                            </div>
-                        </button>
-                    ))
-                )
-            ) : (
-                <div className="text-center p-4 bg-slate-800 rounded-xl text-slate-400">
-                    Nenhum profissional encontrado. Verifique o RLS e o campo 'role' no Supabase.
+                    
+                    {/* Check Icon */}
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center">
+                        <Check className="h-5 w-5 text-white" strokeWidth={3} />
+                    </div>
                 </div>
-            )}
+            </div>
+
+            {/* Mensagem de confiança */}
+            <div className="mt-3 text-center">
+                <p className="text-xs text-slate-400">
+                    ✂️ Especialista em cortes modernos e clássicos
+                </p>
+            </div>
         </div>
     );
 };
