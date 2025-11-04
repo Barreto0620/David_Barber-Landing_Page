@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Clock } from "lucide-react";
 import { supabase } from "@/lib/supabaseClient";
 import { Service, Professional } from "./types";
 
@@ -14,11 +15,21 @@ interface TimeSelectorProps {
  * Componente para seleção de horário no modal de agendamento
  * Considera conflitos com agendamentos existentes e duração dos serviços
  */
-export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, selectedProfessional, selectedService }: TimeSelectorProps) => {
+export const TimeSelector = ({ 
+    selectedDate, 
+    selectedTime, 
+    setSelectedTime, 
+    selectedProfessional, 
+    selectedService 
+}: TimeSelectorProps) => {
     const [occupiedTimes, setOccupiedTimes] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
 
-    const allTimes = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+    const allTimes = [
+        "09:00", "09:30", "10:00", "10:30", "11:00", "11:30", 
+        "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", 
+        "17:00", "17:30", "18:00"
+    ];
 
     useEffect(() => {
         const fetchOccupiedTimes = async () => {
@@ -30,7 +41,6 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
             setLoading(true);
             try {
                 const [year, month, day] = selectedDate.split('-').map(Number);
-
                 const startOfDay = new Date(year, month - 1, day, 0, 0, 0);
                 const endOfDay = new Date(year, month - 1, day, 23, 59, 59);
 
@@ -42,13 +52,10 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
                     .lte('scheduled_date', endOfDay.toISOString())
                     .in('status', ['scheduled', 'in_progress']);
 
-                if (error) {
-                    if (error.code === 'PGRST116' || error.message.includes('406')) {
-                        setOccupiedTimes([]);
-                        setLoading(false);
-                        return;
-                    }
+                if (error && error.code !== 'PGRST116') {
+                    console.error('Erro ao buscar horários:', error);
                     setOccupiedTimes([]);
+                    setLoading(false);
                     return;
                 }
 
@@ -68,8 +75,6 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
                     const utcDate = new Date(appointment.scheduled_date);
                     const startHours = utcDate.getHours();
                     const startMinutes = utcDate.getMinutes();
-
-                    // Pegar duração do serviço
                     const serviceDuration = servicesDurationMap.get(appointment.service_type) || 30;
 
                     // Marcar slot inicial
@@ -88,6 +93,7 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
 
                 setOccupiedTimes(Array.from(allOccupiedSlots));
             } catch (err) {
+                console.error('Erro:', err);
                 setOccupiedTimes([]);
             } finally {
                 setLoading(false);
@@ -123,20 +129,13 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
             const [hours, minutes] = time.split(':').map(Number);
             const timeInMinutes = hours * 60 + minutes;
 
-            // Verificar cada slot de 30 em 30 minutos até completar a duração
             for (let offset = 30; offset < serviceDuration; offset += 30) {
                 const nextTimeInMinutes = timeInMinutes + offset;
                 const nextHours = Math.floor(nextTimeInMinutes / 60);
                 const nextMinutes = nextTimeInMinutes % 60;
                 const nextTime = `${nextHours.toString().padStart(2, '0')}:${nextMinutes.toString().padStart(2, '0')}`;
 
-                // Se o próximo slot estiver ocupado, este horário não está disponível
-                if (occupiedTimes.includes(nextTime)) {
-                    return false;
-                }
-
-                // Se o próximo slot não existir na lista (após 18:00), também não está disponível
-                if (!allTimes.includes(nextTime)) {
+                if (occupiedTimes.includes(nextTime) || !allTimes.includes(nextTime)) {
                     return false;
                 }
             }
@@ -147,53 +146,81 @@ export const TimeSelector = ({ selectedDate, selectedTime, setSelectedTime, sele
 
     const availableTimes = getAvailableTimes();
 
+    if (!selectedDate) {
+        return (
+            <div className="text-center py-8 bg-slate-800/50 rounded-lg border border-slate-700">
+                <Clock className="h-8 w-8 text-slate-500 mx-auto mb-2" />
+                <p className="text-sm text-slate-400">Selecione uma data no calendário acima</p>
+            </div>
+        );
+    }
+
     return (
         <div>
-            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 mt-5 flex items-center">
-                Horário
+            <h3 className="text-lg sm:text-xl font-bold text-white mb-3 flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-amber-400" />
+                    Horário
+                </span>
                 {loading && (
-                    <div className="ml-2 animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-amber-500 border-t-transparent"></div>
                 )}
             </h3>
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
-                {allTimes.map((time) => {
-                    const isPassed = isTimePassed(time);
-                    const isAvailable = availableTimes.includes(time);
-                    const isOccupied = occupiedTimes.includes(time);
+            
+            {availableTimes.length === 0 && !loading ? (
+                <div className="text-center py-8 bg-amber-500/10 rounded-lg border border-amber-500/30">
+                    <p className="text-amber-400 font-semibold">Não há horários disponíveis para esta data</p>
+                    <p className="text-sm text-slate-400 mt-1">Escolha outro dia no calendário</p>
+                </div>
+            ) : (
+                <>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2">
+                        {allTimes.map((time) => {
+                            const isPassed = isTimePassed(time);
+                            const isAvailable = availableTimes.includes(time);
+                            const isOccupied = occupiedTimes.includes(time);
 
-                    return (
-                        <button
-                            key={time}
-                            onClick={() => isAvailable && !isPassed && setSelectedTime(time)}
-                            disabled={!selectedDate || !isAvailable || isPassed}
-                            className={`
-                                p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 active:scale-95 relative
-                                ${!selectedDate || !isAvailable || isPassed ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' : ''}
-                                ${(isOccupied || isPassed) && selectedDate ? 'bg-red-900/20 border-red-700 text-red-400' : ''}
-                                ${selectedTime === time && selectedDate && isAvailable && !isPassed ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30' :
-                                    selectedDate && isAvailable && !isPassed ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' : ''}
-                            `}
-                        >
-                            {time}
-                            {(isOccupied || isPassed) && selectedDate && (
-                                <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900"></span>
-                            )}
-                        </button>
-                    );
-                })}
-            </div>
-            {!selectedDate && (
-                <p className="text-sm text-slate-500 mt-2">Selecione uma data para ver os horários disponíveis.</p>
-            )}
-            {selectedDate && availableTimes.length === 0 && !loading && (
-                <p className="text-sm text-amber-400 mt-2 bg-amber-500/10 p-3 rounded-lg border border-amber-500/30">
-                    Não há horários disponíveis para esta data. Por favor, escolha outro dia.
-                </p>
-            )}
-            {selectedDate && availableTimes.length > 0 && (
-                <p className="text-xs text-slate-400 mt-2">
-                    {allTimes.length - availableTimes.length} {allTimes.length - availableTimes.length === 1 ? 'horário indisponível' : 'horários indisponíveis'} • {availableTimes.length} {availableTimes.length === 1 ? 'disponível' : 'disponíveis'}
-                </p>
+                            return (
+                                <button
+                                    key={time}
+                                    onClick={() => isAvailable && !isPassed && setSelectedTime(time)}
+                                    disabled={!isAvailable || isPassed}
+                                    className={`
+                                        p-2.5 sm:p-3 border-2 rounded-xl font-bold text-sm transition-all duration-300 relative
+                                        ${!isAvailable || isPassed 
+                                            ? 'opacity-50 cursor-not-allowed bg-slate-800 border-slate-700 text-slate-500' 
+                                            : 'cursor-pointer hover:scale-105 active:scale-95'
+                                        }
+                                        ${(isOccupied || isPassed) && selectedDate 
+                                            ? 'bg-red-900/20 border-red-700 text-red-400' 
+                                            : ''
+                                        }
+                                        ${selectedTime === time && isAvailable && !isPassed 
+                                            ? 'border-amber-500 bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105' 
+                                            : isAvailable && !isPassed 
+                                                ? 'border-slate-700 text-slate-300 hover:border-amber-400 hover:bg-slate-800' 
+                                                : ''
+                                        }
+                                    `}
+                                >
+                                    {time}
+                                    {(isOccupied || isPassed) && (
+                                        <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-slate-900"></span>
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                    
+                    <div className="mt-3 flex items-center justify-between text-xs bg-slate-800/50 rounded-lg p-2">
+                        <p className="text-slate-400">
+                            <span className="font-semibold text-green-400">{availableTimes.length}</span> disponíveis
+                        </p>
+                        <p className="text-slate-500">
+                            {allTimes.length - availableTimes.length} ocupados
+                        </p>
+                    </div>
+                </>
             )}
         </div>
     );
