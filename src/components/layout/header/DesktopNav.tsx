@@ -1,16 +1,17 @@
 interface DesktopNavProps {
     onNavigate: (id: string) => void;
+    onScrollToTop: () => void;
 }
 
 /**
  * Menu de navegação para desktop
  */
-export const DesktopNav = ({ onNavigate }: DesktopNavProps) => {
+export const DesktopNav = ({ onNavigate, onScrollToTop }: DesktopNavProps) => {
     return (
         <div className="hidden lg:block">
             <div className="ml-10 flex items-baseline space-x-6 xl:space-x-8">
                 <button
-                    onClick={() => onNavigate('home')}
+                    onClick={onScrollToTop}
                     className="text-white hover:text-amber-400 transition-colors duration-300 font-medium text-sm xl:text-base"
                 >
                     Início

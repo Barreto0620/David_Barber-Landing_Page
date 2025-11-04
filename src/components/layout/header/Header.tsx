@@ -33,6 +33,9 @@ export const Header = () => {
         };
     }, []);
 
+    /**
+     * Realiza scroll suave para uma seção específica
+     */
     const smoothScrollTo = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
@@ -41,8 +44,12 @@ export const Header = () => {
         }
     };
 
+    /**
+     * Realiza scroll para o topo da página
+     */
     const scrollToTop = () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
+        setIsMenuOpen(false);
     };
 
     return (
@@ -62,7 +69,10 @@ export const Header = () => {
                         </div>
 
                         {/* Desktop Navigation */}
-                        <DesktopNav onNavigate={smoothScrollTo} />
+                        <DesktopNav 
+                            onNavigate={smoothScrollTo} 
+                            onScrollToTop={scrollToTop}
+                        />
 
                         {/* Desktop Actions */}
                         <HeaderActions user={user} onBookingOpen={openBooking} />
@@ -74,13 +84,18 @@ export const Header = () => {
                         <button
                             onClick={toggleMenu}
                             className="lg:hidden p-2 text-white hover:text-amber-400 transition-colors"
+                            aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
                         >
                             {isMenuOpen ? <X className="h-5 w-5 sm:h-6 sm:w-6" /> : <Menu className="h-5 w-5 sm:h-6 sm:w-6" />}
                         </button>
                     </div>
 
                     {/* Mobile Navigation */}
-                    <MobileNav isOpen={isMenuOpen} onNavigate={smoothScrollTo} />
+                    <MobileNav 
+                        isOpen={isMenuOpen} 
+                        onNavigate={smoothScrollTo}
+                        onScrollToTop={scrollToTop}
+                    />
                 </nav>
             </header>
 
