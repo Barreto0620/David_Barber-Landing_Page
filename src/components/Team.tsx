@@ -15,23 +15,18 @@ export const Team = () => {
 
     const barber = {
         name: "David Sousa",
-        role: "Fundador & Barbeiro Master",
+        role: "Fundador & Barbeiro",
         experience: 8,
-        rating: 4.9,
-        reviewCount: 234,
         totalClients: 500,
         image: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?w=400&h=400&fit=crop",
-        bio: "Com 8 anos de experiência e mais de 500 clientes atendidos, transformo cada corte em uma experiência única. Especialista em cortes clássicos, modernos e barbas elaboradas.",
+        bio: "Com mais de 8 anos de experiência e mais de 500 clientes atendidos, transformo cada corte em uma experiência única. Especialista em cortes clássicos, modernos e barbas elaboradas.",
         certifications: [
-            "Certificado Internacional de Barbeiro",
-            "Especialização em Design de Barba",
-            "Formação em Tricologia Capilar"
+            "Certificado de Barbeiro",
+            "Especialização em Design"
         ],
         achievements: [
             { icon: Trophy, title: "Melhor Barbeiro 2023", description: "Prêmio Regional" },
             { icon: Users, title: "500+ Clientes", description: "Atendidos com excelência" },
-            { icon: Star, title: "4.9 Estrelas", description: "Média de avaliações" },
-            { icon: TrendingUp, title: "98% Retorno", description: "Taxa de fidelização" }
         ]
     };
 
@@ -220,10 +215,6 @@ export const Team = () => {
                                     />
                                     <div className="absolute top-4 right-4">
                                         {/* CORREÇÃO DE CONTRASTE: bg-green-500 -> bg-green-700 */}
-                                        <span className="px-4 py-2 bg-green-700 text-white rounded-full text-sm font-bold shadow-lg flex items-center">
-                                            <div className="w-2 h-2 bg-white rounded-full mr-2 animate-pulse"></div>
-                                            Disponível Agora
-                                        </span>
                                     </div>
                                 </div>
 
@@ -240,7 +231,7 @@ export const Team = () => {
                                         <div className="flex items-center space-x-4 text-sm text-slate-200">
                                             <span className="flex items-center">
                                                 <Clock className="h-4 w-4 mr-1" />
-                                                {barber.experience} anos
+                                                + {barber.experience} anos
                                             </span>
                                             <span className="flex items-center">
                                                 <Users className="h-4 w-4 mr-1" />
@@ -251,22 +242,7 @@ export const Team = () => {
 
                                     {/* Rating - CORREÇÃO ARIA: Adicionado role="img" */}
                                     <div className="flex items-center mb-6 pb-6 border-b border-slate-700">
-                                        <div 
-                                            className="flex mr-2" 
-                                            role="img" // CORREÇÃO ARIA: Adicionado role="img" para permitir aria-label em elemento não-interativo
-                                            aria-label={`Avaliação ${barber.rating} de 5 estrelas`}
-                                        >
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star
-                                                    key={i}
-                                                    className="h-5 w-5 text-amber-400 fill-amber-400"
-                                                    aria-hidden="true"
-                                                />
-                                            ))}
-                                        </div>
-                                        <span className="text-white font-bold text-lg">{barber.rating}</span>
-                                        {/* [CORREÇÃO 1.4.3] text-slate-300 -> text-slate-200 */}
-                                        <span className="text-slate-200 ml-2">({barber.reviewCount} avaliações)</span>
+                                      
                                     </div>
 
                                     {/* Bio */}

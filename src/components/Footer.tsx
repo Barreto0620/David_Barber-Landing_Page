@@ -48,7 +48,7 @@ export const Footer = () => {
                             {/* Social Media */}
                             <div className="flex space-x-4">
                                 <a 
-                                    href="https://instagram.com" 
+                                    href="https://www.instagram.com/davidbarber.__" 
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="bg-slate-800 p-3 rounded-lg hover:bg-amber-500/20 hover:border-amber-500 border-2 border-transparent transition-all duration-300 group"
@@ -56,26 +56,6 @@ export const Footer = () => {
                                 >
                                     {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
                                     <Instagram className="h-5 w-5 text-slate-200 group-hover:text-amber-400 transition-colors" />
-                                </a>
-                                <a 
-                                    href="https://facebook.com" 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="bg-slate-800 p-3 rounded-lg hover:bg-amber-500/20 hover:border-amber-500 border-2 border-transparent transition-all duration-300 group"
-                                    aria-label="Facebook"
-                                >
-                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
-                                    <Facebook className="h-5 w-5 text-slate-200 group-hover:text-amber-400 transition-colors" />
-                                </a>
-                                <a 
-                                    href="https://twitter.com" 
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="bg-slate-800 p-3 rounded-lg hover:bg-amber-500/20 hover:border-amber-500 border-2 border-transparent transition-all duration-300 group"
-                                    aria-label="Twitter"
-                                >
-                                    {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-200 */}
-                                    <Twitter className="h-5 w-5 text-slate-200 group-hover:text-amber-400 transition-colors" />
                                 </a>
                             </div>
                         </div>
@@ -94,23 +74,12 @@ export const Footer = () => {
                                     <MapPin className="h-5 w-5 text-amber-400 mt-0.5 flex-shrink-0" />
                                     {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
                                     <div className="text-slate-300 group-hover:text-amber-400 transition-colors">
-                                        <div>Rua dos Barbeiros, 123</div>
-                                        <div>Vila Premium - SP</div>
-                                        <div>01234-567</div>
+                                        <div>Rua Basil Cameron, 46</div>
+                                        <div>Vila Guarani - SP</div>
                                     </div>
                                 </a>
-                                
                                 <a 
-                                    href="tel:+5511999999999" 
-                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
-                                    className="flex items-center space-x-3 text-slate-300 hover:text-amber-400 transition-colors group"
-                                >
-                                    <Phone className="h-5 w-5 text-amber-400" />
-                                    <span>(11) 99999-9999</span>
-                                </a>
-                                
-                                <a 
-                                    href="https://wa.me/5511999999999" 
+                                    href="https://wa.me/5511978726013" 
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
@@ -121,14 +90,6 @@ export const Footer = () => {
                                     <ExternalLink className="h-3 w-3" />
                                 </a>
                                 
-                                <a 
-                                    href="mailto:contato@davidbarber.com" 
-                                    // [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300
-                                    className="flex items-center space-x-3 text-slate-300 hover:text-amber-400 transition-colors group"
-                                >
-                                    <Mail className="h-5 w-5 text-amber-400" />
-                                    <span>contato@davidbarber.com</span>
-                                </a>
                             </div>
                         </div>
 
@@ -143,30 +104,24 @@ export const Footer = () => {
                                 <div className="flex justify-between items-center text-sm">
                                     {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
                                     <span className="text-slate-300 font-medium">Segunda - Sexta</span>
-                                    <span className="text-white font-bold">09:00 - 19:00</span>
+                                    <span className="text-white font-bold">09:00 - 18:00</span>
                                 </div>
                                 <div className="h-px bg-slate-800"></div>
                                 
                                 <div className="flex justify-between items-center text-sm">
                                     {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
                                     <span className="text-slate-300 font-medium">Sábado</span>
-                                    <span className="text-white font-bold">08:00 - 17:00</span>
+                                    <span className="text-white font-bold">09:00 - 18:00</span>
                                 </div>
                                 <div className="h-px bg-slate-800"></div>
                                 
                                 <div className="flex justify-between items-center text-sm">
                                     {/* [CORREÇÃO 1.4.3] text-slate-400 -> text-slate-300 */}
                                     <span className="text-slate-300 font-medium">Domingo</span>
-                                    <span className="text-white font-bold">09:00 - 15:00</span>
+                                    <span className="text-white font-bold">Fechado</span>
                                 </div>
 
-                                {/* Status Indicator */}
-                                <div className="mt-4 p-3 bg-green-500/10 border border-green-500/30 rounded-lg">
-                                    <div className="flex items-center">
-                                        <div className="w-2 h-2 bg-green-400 rounded-full mr-2 animate-pulse"></div>
-                                        <span className="text-green-400 font-medium text-sm">Aberto agora!</span>
-                                    </div>
-                                </div>
+                                
                             </div>
                         </div>
                     </div>
@@ -538,9 +493,6 @@ export const Footer = () => {
                                         <span>Solicitar a exclusão (anonimização) dos seus dados, exceto quando a lei exigir a manutenção.</span>
                                     </li>
                                 </ul>
-                                <p className="leading-relaxed mt-2">
-                                    Para exercer seus direitos, entre em contato pelo e-mail: <code className="text-amber-300">contato@davidbarber.com</code>
-                                </p>
                             </div>
                             
                             <div>

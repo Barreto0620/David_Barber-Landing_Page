@@ -1,5 +1,12 @@
 import { useState, useEffect } from "react";
-import { Calendar, Star, Clock, CheckCircle, Activity, UserCheck } from "lucide-react";
+import {
+  Calendar,
+  Star,
+  Clock,
+  CheckCircle,
+  Activity,
+  UserCheck,
+} from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 
 interface CurrentAppointment {
@@ -18,13 +25,35 @@ interface NextSlot {
 }
 
 export const Hero = () => {
-  const [currentAppointment, setCurrentAppointment] = useState<CurrentAppointment | null>(null);
-  const [lastCompletedService, setLastCompletedService] = useState<CurrentAppointment | null>(null);
-  const [nextAvailableSlot, setNextAvailableSlot] = useState<NextSlot | null>(null);
-  const [professionalStatus, setProfessionalStatus] = useState<'available' | 'busy' | 'offline'>('available');
+  const [currentAppointment, setCurrentAppointment] =
+    useState<CurrentAppointment | null>(null);
+  const [lastCompletedService, setLastCompletedService] =
+    useState<CurrentAppointment | null>(null);
+  const [nextAvailableSlot, setNextAvailableSlot] = useState<NextSlot | null>(
+    null
+  );
+  const [professionalStatus, setProfessionalStatus] = useState<
+    "available" | "busy" | "offline"
+  >("available");
   const [loading, setLoading] = useState(true);
 
-  const businessHours = ["09:00", "09:30", "10:00", "10:30", "11:00", "11:30", "14:00", "14:30", "15:00", "15:30", "16:00", "16:30", "17:00", "17:30", "18:00"];
+  const businessHours = [
+    "09:00",
+    "09:30",
+    "10:00",
+    "10:30",
+    "11:00",
+    "11:30",
+    "14:00",
+    "14:30",
+    "15:00",
+    "15:30",
+    "16:00",
+    "16:30",
+    "17:00",
+    "17:30",
+    "18:00",
+  ];
 
   const fetchLiveData = async () => {
     try {
@@ -32,15 +61,15 @@ export const Hero = () => {
 
       // ✅ Query SIMPLES - Sem foreign key join
       const { data: allData, error: allError } = await supabase
-        .from('appointments')
-        .select('service_type, price, scheduled_date, status, professional_id')
-        .in('status', ['in_progress', 'scheduled'])
-        .order('scheduled_date', { ascending: true });
+        .from("appointments")
+        .select("service_type, price, scheduled_date, status, professional_id")
+        .in("status", ["in_progress", "scheduled"])
+        .order("scheduled_date", { ascending: true });
 
       if (allError) {
-        console.error('Erro ao buscar agendamentos:', allError);
+        console.error("Erro ao buscar agendamentos:", allError);
         setCurrentAppointment(null);
-        setProfessionalStatus('available');
+        setProfessionalStatus("available");
         setNextAvailableSlot({ time: "09:00", available: true });
         setLoading(false);
         return;
@@ -49,60 +78,69 @@ export const Hero = () => {
       // 🔥 BUSCAR ÚLTIMO SERVIÇO COMPLETO
       // Tentativa 1: Ordenar por completed_at
       let { data: completedData, error: completedError } = await supabase
-        .from('appointments')
-        .select('service_type, price, scheduled_date, status, professional_id, completed_at')
-        .eq('status', 'completed')
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false })
+        .from("appointments")
+        .select(
+          "service_type, price, scheduled_date, status, professional_id, completed_at"
+        )
+        .eq("status", "completed")
+        .not("completed_at", "is", null)
+        .order("completed_at", { ascending: false })
         .limit(1);
 
       // Tentativa 2: Se não encontrar com completed_at, usar scheduled_date
       if ((!completedData || completedData.length === 0) && !completedError) {
-        console.log('⚠️ Nenhum registro com completed_at, tentando scheduled_date...');
+        console.log(
+          "⚠️ Nenhum registro com completed_at, tentando scheduled_date..."
+        );
         const result = await supabase
-          .from('appointments')
-          .select('service_type, price, scheduled_date, status, professional_id, completed_at')
-          .eq('status', 'completed')
-          .order('scheduled_date', { ascending: false })
+          .from("appointments")
+          .select(
+            "service_type, price, scheduled_date, status, professional_id, completed_at"
+          )
+          .eq("status", "completed")
+          .order("scheduled_date", { ascending: false })
           .limit(1);
-        
+
         completedData = result.data;
         completedError = result.error;
       }
 
-      console.log('🔍 Buscando último serviço completo:', { 
+      console.log("🔍 Buscando último serviço completo:", {
         totalRegistros: completedData?.length || 0,
-        erro: completedError?.message || 'nenhum',
-        dados: completedData 
+        erro: completedError?.message || "nenhum",
+        dados: completedData,
       });
 
       if (!completedError && completedData && completedData.length > 0) {
         const lastCompleted = completedData[0];
-        console.log('✅ Último serviço encontrado:', {
+        console.log("✅ Último serviço encontrado:", {
           servico: lastCompleted.service_type,
           preco: lastCompleted.price,
           data: lastCompleted.scheduled_date,
-          professional_id: lastCompleted.professional_id
+          professional_id: lastCompleted.professional_id,
         });
-        
+
         // Buscar dados do profissional do último serviço
-        let professionalName = 'Profissional';
-        
+        let professionalName = "Profissional";
+
         if (lastCompleted.professional_id) {
           const { data: professionalData, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('full_name, username, role')
-            .eq('id', lastCompleted.professional_id)
+            .from("user_profiles")
+            .select("full_name, username, role")
+            .eq("id", lastCompleted.professional_id)
             .single();
-          
-          console.log('👤 Dados do profissional:', { 
+
+          console.log("👤 Dados do profissional:", {
             dados: professionalData,
-            erro: profileError?.message || 'nenhum'
+            erro: profileError?.message || "nenhum",
           });
-          
+
           if (professionalData) {
             // Tentar pegar full_name, senão username, senão deixar 'Profissional'
-            professionalName = professionalData.full_name || professionalData.username || 'Profissional';
+            professionalName =
+              professionalData.full_name ||
+              professionalData.username ||
+              "Profissional";
           }
         }
 
@@ -111,44 +149,53 @@ export const Hero = () => {
           price: lastCompleted.price,
           scheduled_date: lastCompleted.scheduled_date,
           professional: {
-            full_name: professionalName
+            full_name: professionalName,
           },
-          status: lastCompleted.status
+          status: lastCompleted.status,
         });
-        
-        console.log('💾 Estado atualizado - último serviço salvo:', professionalName);
+
+        console.log(
+          "💾 Estado atualizado - último serviço salvo:",
+          professionalName
+        );
       } else {
-        console.log('⚠️ Nenhum serviço completo encontrado no banco');
+        console.log("⚠️ Nenhum serviço completo encontrado no banco");
         setLastCompletedService(null);
       }
 
       if (allData && allData.length > 0) {
         // Filtrar apenas agendamentos de hoje
-        const todayAppointments = allData.filter(apt => {
+        const todayAppointments = allData.filter((apt) => {
           const aptDate = new Date(apt.scheduled_date);
-          return aptDate.getDate() === now.getDate() && 
-                 aptDate.getMonth() === now.getMonth() && 
-                 aptDate.getFullYear() === now.getFullYear();
+          return (
+            aptDate.getDate() === now.getDate() &&
+            aptDate.getMonth() === now.getMonth() &&
+            aptDate.getFullYear() === now.getFullYear()
+          );
         });
 
         // Buscar agendamento em progresso
-        const inProgress = todayAppointments.find(apt => apt.status === 'in_progress');
-        const targetAppointment = inProgress || todayAppointments.find(apt => 
-          apt.status === 'scheduled' && 
-          new Date(apt.scheduled_date) > now
+        const inProgress = todayAppointments.find(
+          (apt) => apt.status === "in_progress"
         );
+        const targetAppointment =
+          inProgress ||
+          todayAppointments.find(
+            (apt) =>
+              apt.status === "scheduled" && new Date(apt.scheduled_date) > now
+          );
 
         if (targetAppointment) {
           // Buscar dados do profissional separadamente
-          let professionalName = 'Profissional';
-          
+          let professionalName = "Profissional";
+
           if (targetAppointment.professional_id) {
             const { data: professionalData } = await supabase
-              .from('user_profiles')
-              .select('full_name')
-              .eq('id', targetAppointment.professional_id)
+              .from("user_profiles")
+              .select("full_name")
+              .eq("id", targetAppointment.professional_id)
               .single();
-            
+
             if (professionalData) {
               professionalName = professionalData.full_name;
             }
@@ -159,22 +206,22 @@ export const Hero = () => {
             price: targetAppointment.price,
             scheduled_date: targetAppointment.scheduled_date,
             professional: {
-              full_name: professionalName
+              full_name: professionalName,
             },
-            status: targetAppointment.status
+            status: targetAppointment.status,
           });
 
-          setProfessionalStatus(inProgress ? 'busy' : 'available');
+          setProfessionalStatus(inProgress ? "busy" : "available");
         } else {
           setCurrentAppointment(null);
-          setProfessionalStatus('available');
+          setProfessionalStatus("available");
         }
 
         // Calcular próximo horário disponível
-        const occupiedTimes = todayAppointments.map(apt => {
+        const occupiedTimes = todayAppointments.map((apt) => {
           const date = new Date(apt.scheduled_date);
-          const hours = date.getHours().toString().padStart(2, '0');
-          const minutes = date.getMinutes().toString().padStart(2, '0');
+          const hours = date.getHours().toString().padStart(2, "0");
+          const minutes = date.getMinutes().toString().padStart(2, "0");
           return `${hours}:${minutes}`;
         });
 
@@ -182,11 +229,14 @@ export const Hero = () => {
         const currentMinute = now.getMinutes();
         const currentTimeInMinutes = currentHour * 60 + currentMinute;
 
-        const nextSlot = businessHours.find(time => {
-          const [hours, minutes] = time.split(':').map(Number);
+        const nextSlot = businessHours.find((time) => {
+          const [hours, minutes] = time.split(":").map(Number);
           const slotTimeInMinutes = hours * 60 + minutes;
-          
-          return slotTimeInMinutes > currentTimeInMinutes && !occupiedTimes.includes(time);
+
+          return (
+            slotTimeInMinutes > currentTimeInMinutes &&
+            !occupiedTimes.includes(time)
+          );
         });
 
         if (nextSlot) {
@@ -196,7 +246,7 @@ export const Hero = () => {
         }
       } else {
         setCurrentAppointment(null);
-        setProfessionalStatus('available');
+        setProfessionalStatus("available");
         setNextAvailableSlot({ time: "09:00", available: true });
       }
 
@@ -204,7 +254,7 @@ export const Hero = () => {
     } catch (err) {
       console.error("Erro ao buscar dados ao vivo:", err);
       setCurrentAppointment(null);
-      setProfessionalStatus('available');
+      setProfessionalStatus("available");
       setNextAvailableSlot({ time: "09:00", available: true });
       setLoading(false);
     }
@@ -221,28 +271,35 @@ export const Hero = () => {
   }, []);
 
   const openBookingModal = () => {
-    if (typeof (window as any).openBookingModal === 'function') {
+    if (typeof (window as any).openBookingModal === "function") {
       (window as any).openBookingModal();
     } else {
-      window.dispatchEvent(new CustomEvent('openBooking'));
+      window.dispatchEvent(new CustomEvent("openBooking"));
     }
   };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
   };
 
   const getTimeRemaining = (dateString: string) => {
     const scheduledDate = new Date(dateString);
     const now = new Date();
     const diff = scheduledDate.getTime() - now.getTime();
-    
+
     if (diff < 0) {
       const elapsed = Math.abs(diff);
       const minutesElapsed = Math.floor(elapsed / 60000);
@@ -259,7 +316,10 @@ export const Hero = () => {
   };
 
   return (
-    <section id="main-content" className="relative min-h-screen flex items-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden">
+    <section
+      id="main-content"
+      className="relative min-h-screen flex items-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 overflow-hidden"
+    >
       {/* Background Interativo Profissional */}
       <div className="absolute inset-0 z-0" aria-hidden="true">
         {/* Gradiente animado */}
@@ -271,9 +331,12 @@ export const Hero = () => {
         <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-amber-400/5 rounded-full blur-2xl animate-pulse-slow"></div>
 
         {/* Padrão de grade sutil */}
-        <div className="absolute inset-0 opacity-5" style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-        }}></div>
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f59e0b' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }}
+        ></div>
 
         {/* Linhas diagonais elegantes */}
         <div className="absolute inset-0 opacity-5">
@@ -286,18 +349,8 @@ export const Hero = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
           <div className="space-y-6 sm:space-y-8">
             <div className="flex items-center space-x-2">
-                <span className="flex" role="img" aria-label="Avaliação 4.9 de 5 estrelas">
-                  {[...Array(5)].map((_, i) => (
-                    <Star
-                      key={i}
-                      className="h-4 w-4 sm:h-5 sm:w-5 text-amber-400 fill-amber-400"
-                      aria-hidden="true"
-                    />
-                  ))}
-                </span>
-                <span className="text-slate-200 font-semibold text-sm sm:text-base">
-                  4.9/5 • 500+ clientes satisfeitos
-                </span>
+              
+              
             </div>
 
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold leading-tight">
@@ -310,8 +363,8 @@ export const Hero = () => {
             </h2>
 
             <p className="text-lg sm:text-xl text-slate-200 leading-relaxed max-w-lg">
-              Transforme seu visual com nosso barbeiro especializado. 
-              Agende em <strong className="text-amber-400">3 cliques</strong> e 
+              Transforme seu visual com nosso barbeiro especializado. Agende em{" "}
+              <strong className="text-amber-400">3 cliques</strong> e
               experimente o melhor da barbearia moderna.
             </p>
 
@@ -334,51 +387,44 @@ export const Hero = () => {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-              <button 
+              <button
                 onClick={openBookingModal}
                 className="px-6 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-lg hover:shadow-lg hover:shadow-amber-500/50 hover:scale-105 transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
               >
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                 Reservar Agora - 3 Passos
               </button>
-              <button 
-                onClick={() => document.getElementById('services')?.scrollIntoView({ behavior: 'smooth' })}
+              <button
+                onClick={() =>
+                  document
+                    .getElementById("services")
+                    ?.scrollIntoView({ behavior: "smooth" })
+                }
                 className="px-6 sm:px-8 py-3 sm:py-4 border-2 border-amber-500 text-amber-400 rounded-lg hover:bg-amber-500 hover:text-white transition-all duration-300 flex items-center justify-center font-bold text-base sm:text-lg active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
               >
                 Ver Nossos Serviços
               </button>
             </div>
 
-            <div className="flex items-center justify-around sm:justify-start sm:space-x-8 pt-6 sm:pt-8 border-t border-slate-700">
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-amber-400">500+</div>
-                <div className="text-xs sm:text-sm text-slate-200">Clientes</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-amber-400">8</div>
-                <div className="text-xs sm:text-sm text-slate-200">Anos</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl sm:text-3xl font-bold text-amber-400">98%</div>
-                <div className="text-xs sm:text-sm text-slate-200">Satisfação</div>
-              </div>
-            </div>
+            
           </div>
 
           <div className="flex justify-center lg:justify-end">
             <div className="bg-slate-800 border-2 border-amber-500/30 rounded-2xl p-5 sm:p-6 max-w-md w-full shadow-2xl shadow-amber-500/10 hover:border-amber-500/50 transition-all duration-300">
               <div className="flex items-center justify-between mb-5 sm:mb-6">
                 <h3 className="text-lg sm:text-xl font-bold text-white">
-                  {currentAppointment?.status === 'in_progress' ? '🔥 Ao Vivo' : '⏳ Acompanhar Corte'}
+                  {currentAppointment?.status === "in_progress"
+                    ? "🔥 Ao Vivo"
+                    : "⏳ Acompanhar Corte"}
                 </h3>
-                <div className="flex items-center space-x-1">
-                  <div className={`w-2 h-2 rounded-full ${professionalStatus === 'busy' ? 'bg-orange-400 animate-pulse' : 'bg-green-400 animate-pulse'}`}></div>
-                  <span className={`text-xs font-medium ${professionalStatus === 'busy' ? 'text-orange-400' : 'text-green-400'}`}>
-                    {professionalStatus === 'busy' ? 'Em atendimento' : 'Disponível'}
+                <div className="flex items-center space-x-2 px-3 py-1.5 bg-green-500/10 border border-green-500/30 rounded-full">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs font-medium text-green-400">
+                    Tempo real
                   </span>
                 </div>
               </div>
-              
+
               {loading ? (
                 <div className="flex justify-center items-center h-64">
                   <div className="animate-spin rounded-full h-12 w-12 border-4 border-amber-500 border-t-transparent"></div>
@@ -387,12 +433,14 @@ export const Hero = () => {
                 <div className="space-y-3 sm:space-y-4">
                   {currentAppointment ? (
                     <>
-                      {currentAppointment.status === 'in_progress' && (
+                      {currentAppointment.status === "in_progress" && (
                         <div className="p-3 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/50 rounded-xl">
                           <div className="flex items-center space-x-2">
                             <Activity className="h-5 w-5 text-orange-400 animate-pulse" />
                             <span className="text-orange-400 font-bold text-sm">
-                              {getTimeRemaining(currentAppointment.scheduled_date)}
+                              {getTimeRemaining(
+                                currentAppointment.scheduled_date
+                              )}
                             </span>
                           </div>
                         </div>
@@ -401,23 +449,33 @@ export const Hero = () => {
                       <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
                         <div className="flex items-center justify-between mb-2">
                           <div className="text-xs sm:text-sm text-slate-200">
-                            {currentAppointment.status === 'in_progress' ? 'Serviço em Andamento' : 'Próximo Serviço'}
+                            {currentAppointment.status === "in_progress"
+                              ? "Serviço em Andamento"
+                              : "Próximo Serviço"}
                           </div>
-                          {currentAppointment.status === 'scheduled' && (
+                          {currentAppointment.status === "scheduled" && (
                             <div className="text-xs text-amber-400 font-bold">
                               {formatTime(currentAppointment.scheduled_date)}
                             </div>
                           )}
                         </div>
-                        <div className="font-bold text-white text-sm sm:text-base mb-1">{currentAppointment.service_type}</div>
-                        <div className="text-amber-400 font-bold text-lg sm:text-xl">R$ {currentAppointment.price.toFixed(2)}</div>
+                        <div className="font-bold text-white text-sm sm:text-base mb-1">
+                          {currentAppointment.service_type}
+                        </div>
+                        <div className="text-amber-400 font-bold text-lg sm:text-xl">
+                          R$ {currentAppointment.price.toFixed(2)}
+                        </div>
                       </div>
-                      
+
                       <div className="p-3 sm:p-4 bg-slate-700/50 rounded-xl border border-slate-600 hover:border-amber-500/50 transition-colors">
-                        <div className="text-xs sm:text-sm text-slate-200 mb-1">Profissional</div>
+                        <div className="text-xs sm:text-sm text-slate-200 mb-1">
+                          Profissional
+                        </div>
                         <div className="flex items-center justify-between">
-                          <div className="font-bold text-white text-sm sm:text-base">{currentAppointment.professional.full_name}</div>
-                          {professionalStatus === 'busy' ? (
+                          <div className="font-bold text-white text-sm sm:text-base">
+                            {currentAppointment.professional.full_name}
+                          </div>
+                          {professionalStatus === "busy" ? (
                             <span className="inline-flex items-center px-2 sm:px-3 py-1 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-full text-xs font-bold">
                               <Activity className="h-3 w-3 mr-1" />
                               Ocupado
@@ -436,49 +494,71 @@ export const Hero = () => {
                       <div className="p-4 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 rounded-xl border border-blue-500/30">
                         <div className="flex items-center space-x-2 mb-3">
                           <CheckCircle className="h-5 w-5 text-blue-400" />
-                          <span className="text-blue-400 font-bold text-sm">Último Serviço Prestado</span>
+                          <span className="text-blue-400 font-bold text-sm">
+                            Último Serviço Prestado
+                          </span>
                         </div>
-                        
+
                         <div className="space-y-2">
                           <div>
-                            <div className="text-xs text-slate-300 mb-1">Serviço</div>
-                            <div className="font-bold text-white text-base">{lastCompletedService.service_type}</div>
+                            <div className="text-xs text-slate-300 mb-1">
+                              Serviço
+                            </div>
+                            <div className="font-bold text-white text-base">
+                              {lastCompletedService.service_type}
+                            </div>
                           </div>
-                          
+
                           <div className="flex items-center justify-between">
                             <div>
-                              <div className="text-xs text-slate-300 mb-1">Valor</div>
-                              <div className="text-amber-400 font-bold text-lg">R$ {lastCompletedService.price.toFixed(2)}</div>
+                              <div className="text-xs text-slate-300 mb-1">
+                                Valor
+                              </div>
+                              <div className="text-amber-400 font-bold text-lg">
+                                R$ {lastCompletedService.price.toFixed(2)}
+                              </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-xs text-slate-300 mb-1">Data/Hora</div>
+                              <div className="text-xs text-slate-300 mb-1">
+                                Data/Hora
+                              </div>
                               <div className="text-white font-semibold text-xs">
-                                {formatDate(lastCompletedService.scheduled_date)}
+                                {formatDate(
+                                  lastCompletedService.scheduled_date
+                                )}
                               </div>
                               <div className="text-amber-400 font-bold text-sm">
-                                {formatTime(lastCompletedService.scheduled_date)}
+                                {formatTime(
+                                  lastCompletedService.scheduled_date
+                                )}
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="pt-2 border-t border-slate-600/50">
-                            <div className="text-xs text-slate-300 mb-1">Profissional</div>
-                            <div className="font-bold text-white text-sm">{lastCompletedService.professional.full_name}</div>
+                            <div className="text-xs text-slate-300 mb-1">
+                              Profissional
+                            </div>
+                            <div className="font-bold text-white text-sm">
+                              {lastCompletedService.professional.full_name}
+                            </div>
                           </div>
                         </div>
                       </div>
-
-                        
                     </>
                   ) : (
                     <div className="p-4 bg-slate-700/30 rounded-xl border border-slate-600 text-center">
                       <UserCheck className="h-12 w-12 mx-auto mb-3 text-green-400" />
-                      <p className="text-white font-bold mb-1">Profissional Disponível</p>
-                      <p className="text-sm text-slate-200">Nenhum atendimento agendado no momento</p>
+                      <p className="text-white font-bold mb-1">
+                        Profissional Disponível
+                      </p>
+                      <p className="text-sm text-slate-200">
+                        Nenhum atendimento agendado no momento
+                      </p>
                     </div>
                   )}
-                  
-                  <button 
+
+                  <button
                     onClick={openBookingModal}
                     className="w-full px-4 sm:px-6 py-3 sm:py-4 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl hover:shadow-lg hover:shadow-amber-500/50 transition-all duration-300 flex items-center justify-center font-bold text-sm sm:text-base active:scale-95 focus:outline-none focus:ring-4 focus:ring-amber-500/50"
                   >
